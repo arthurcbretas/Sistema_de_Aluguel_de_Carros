@@ -340,7 +340,7 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ## Sprints e Entregas
 
-### Sprint 01 — Modelagem ✅
+### Sprint 01 — Modelagem
 
 > **Entregues:**
 
@@ -353,7 +353,7 @@ Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 
 ---
 
-### Sprint 02 — Componentes + CRUD Cliente 🔄
+### Sprint 02 — Componentes + CRUD Cliente
 
 > **A entregar:**
 
@@ -377,19 +377,19 @@ Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 
 ## Modelos UML
 
-Os diagramas estão na pasta [`/docs/uml/`](docs/uml/) como arquivos PlantUML (`.puml`) versionáveis e renderizados abaixo via [kroki.io](https://kroki.io).
+Os diagramas estão na pasta [`/docs/uml/`](docs/uml/) como arquivos PlantUML (`.puml`) versionáveis.
 
 ### Diagrama de Casos de Uso
 
-![Casos de Uso](https://kroki.io/plantuml/svg/?url=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/casos-de-uso.puml)
+![Casos de Uso](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/casos-de-uso.puml&fmt=svg)
 
 ### Diagrama de Classes
 
-![Diagrama de Classes](https://kroki.io/plantuml/svg/?url=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-classes.puml)
+![Diagrama de Classes](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-classes.puml&fmt=svg)
 
 ### Diagrama de Pacotes
 
-![Diagrama de Pacotes](https://kroki.io/plantuml/svg/?url=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-pacotes.puml)
+![Diagrama de Pacotes](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-pacotes.puml&fmt=svg)
 
 ---
 
