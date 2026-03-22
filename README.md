@@ -381,7 +381,7 @@ Os diagramas estão na pasta [`/docs/uml/`](docs/uml/) como arquivos PlantUML (`
 
 ### Diagrama de Casos de Uso
 
-![Casos de Uso](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/casos-de-uso.puml&fmt=svg)
+![Casos de Uso](https://www.plantuml.com/plantuml/svg/VPJBZjim34Nt-WeYgtOn0-UT30R1f6xHJGiK6SpE6y9cNA6s64Xo-lxtKduC70MfLzOb3tGbadfo7grlwWfITEpUqujZLT7HWsUmklpgeT2MSg_PAFTDcnDQh05pp_RP_wm8y3ivhacfLeEqqcGyzQjzELfyg4-M7FQhTsXoxl-VjVDKer9z2jpT_TaDS9i8SA6fO0bDAVjFUXWAWdtLb0rLuJT5QzbDuBTI08sZ79talgJ9D3C7mah_GZ6B1JflUGBZ3ns4l8YRZRXFN6fp2RroiuYRPoQrMg0lLEY2hwY1cqVSGZWshgdyBRRZ5X6tpCndBlHHv__dbX6taltafgcwQRNZLX6tpin7icJoSCO3cKBNKY9syAR67p1_E-cvTSHjnbnRzn8Bbkh7u2O2jvdPdwKGjw-quxQNt3HfDmnLP-Cj-XlSD8auQPYzSzpwJAtiU4LsNDGmqzcuWFl6SyrdqcuISpFrLwb-RAJ9TrtpHS8i5kQni8Y5PIoiOc4T2vj846-gcpWOKhQZUTnrnnu6i1SIfO8_kB_ldCC3F3vgarTDGRjTY2s7sE8wjheTcoP3R1l5b66ns3rNV6nDI4QeTi60uUhHopo4ngJCdAGvyMJvZ3do5Pgi1JrGQV41f15rpJ0FZ8MyVzhKatIvF9d_00)
 
 ### Diagrama de Classes
 
