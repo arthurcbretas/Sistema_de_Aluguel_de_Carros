@@ -3,11 +3,10 @@
 # ============================================================
 
 # ----------------------------------------------------------
-# Artefatos do laboratório (não versionar enunciados em PDF
-# e cópias do docx na raiz — o original fica em docs/uml/)
+# Artefatos do laboratório
 # ----------------------------------------------------------
 *.pdf
-/*.docx
+*.docx
 
 # ----------------------------------------------------------
 # Build — Gradle
