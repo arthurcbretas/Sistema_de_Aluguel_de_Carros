@@ -1,4 +1,4 @@
-# 🚗 Sistema de Aluguel de Carros
+# Sistema de Aluguel de Carros
 
 > **LAB02 — Laboratório de Desenvolvimento de Software**  
 > PUC Minas · Engenharia de Software · Prof. João Paulo Carneiro Aramuni
@@ -11,7 +11,7 @@
 
 ---
 
-## 📋 Sumário
+## Sumário
 
 - [Sobre o Projeto](#-sobre-o-projeto)
 - [Arquitetura](#-arquitetura)
@@ -27,7 +27,7 @@
 
 ---
 
-## 📖 Sobre o Projeto
+## Sobre o Projeto
 
 Sistema web para apoio à **gestão de aluguéis de automóveis**, permitindo efetuar, cancelar e modificar pedidos através da Internet.
 
@@ -50,7 +50,7 @@ Sistema web para apoio à **gestão de aluguéis de automóveis**, permitindo ef
 
 ---
 
-## 🏗 Arquitetura
+## Arquitetura
 
 O sistema segue a arquitetura **MVC (Model-View-Controller)** com o framework **Micronaut**, organizado em camadas com dependências unidirecionais:
 
@@ -90,7 +90,7 @@ O sistema segue a arquitetura **MVC (Model-View-Controller)** com o framework **
 
 ---
 
-## 🗂 Modelo de Domínio
+## Modelo de Domínio
 
 ### Hierarquia de Classes
 
@@ -140,7 +140,7 @@ public enum StatusPedido {
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 aluguel-carros/
@@ -185,7 +185,7 @@ aluguel-carros/
 
 ---
 
-## ✅ Pré-requisitos
+## Pré-requisitos
 
 Certifique-se de ter instalado:
 
@@ -203,7 +203,7 @@ java -version    # deve ser 17+
 
 ---
 
-## 🚀 Instalação e Execução
+## Instalação e Execução
 
 ### 1. Clone o repositório
 
@@ -284,7 +284,7 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ---
 
-## 🌐 Endpoints da API
+## Endpoints da API
 
 ### Autenticação
 
@@ -338,7 +338,7 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ---
 
-## 📅 Sprints e Entregas
+## Sprints e Entregas
 
 ### Sprint 01 — Modelagem ✅
 
@@ -349,7 +349,7 @@ A API estará disponível em: **`http://localhost:8080`**
 - [x] Diagrama de Classes (com melhorias: `Avaliacao`, atributos temporais, métodos em `Proprietario`)
 - [x] Diagrama de Pacotes — Visão Lógica (9 pacotes, arquitetura MVC Micronaut)
 
-📄 Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
+Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 
 ---
 
@@ -364,7 +364,7 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ---
 
-### Sprint 03 — Protótipo Final 🔜
+### Sprint 03 — Protótipo Final
 
 > **A entregar:**
 
@@ -375,9 +375,25 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ---
 
-## 📐 Modelos UML
+## Modelos UML
 
-Os diagramas estão disponíveis na pasta [`/docs/uml/`](docs/uml/) nos formatos `.docx` (documento completo) e código PlantUML (`.puml`) para re-geração.
+Os diagramas estão na pasta [`/docs/uml/`](docs/uml/) como arquivos PlantUML (`.puml`) versionáveis e renderizados abaixo via [kroki.io](https://kroki.io).
+
+### Diagrama de Casos de Uso
+
+![Casos de Uso](https://kroki.io/plantuml/svg/?url=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/casos-de-uso.puml)
+
+### Diagrama de Classes
+
+![Diagrama de Classes](https://kroki.io/plantuml/svg/?url=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-classes.puml)
+
+### Diagrama de Pacotes
+
+![Diagrama de Pacotes](https://kroki.io/plantuml/svg/?url=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-pacotes.puml)
+
+---
+
+### Código-fonte PlantUML
 
 ### Diagrama de Casos de Uso — PlantUML
 
@@ -478,7 +494,7 @@ Pedido  "1" --> "*"    Avaliacao
 
 ---
 
-## 🛠 Tecnologias
+## Tecnologias
 
 | Tecnologia | Versão | Uso |
 |-----------|--------|-----|
@@ -493,27 +509,17 @@ Pedido  "1" --> "*"    Avaliacao
 | **JUnit 5** | 5.x | Testes unitários |
 | **Mockito** | 5.x | Mocks para testes |
 
-### Por que Micronaut?
-
-O Micronaut foi escolhido como alternativa ao Spring Boot pelos seguintes motivos técnicos:
-
-- **Injeção de dependências em tempo de compilação** — elimina reflexão em runtime, resultando em startup ultrarrápido
-- **Menor consumo de memória** — ideal para microsserviços e cloud
-- **AOT (Ahead-of-Time) compilation** — compatível com GraalVM Native Image
-- **Micronaut Data** — repositórios JPA sem reflexão, com queries geradas em tempo de compilação
-- **Micronaut Security** — suporte nativo a JWT sem configurações verbosas
-
 ---
 
-## 👥 Equipe
+## Equipe
 
 | Nome | Função | GitHub |
 |------|--------|--------|
-| [Seu Nome] | Desenvolvedor | [@seu-usuario](https://github.com/seu-usuario) |
+| [Arthur Capanema Bretas] | Desenvolvedor | [arthurcbretas@gmail.com) |
 
 ---
 
-## 📄 Licença
+## Licença
 
 Este projeto está licenciado sob a [MIT License](LICENSE).
 

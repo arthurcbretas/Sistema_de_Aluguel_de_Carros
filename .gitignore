@@ -3,8 +3,7 @@
 # ============================================================
 
 # ----------------------------------------------------------
-# Artefatos do laboratório (não versionar PDFs nem arquivos
-# Word — diagramas ficam nos .puml versionáveis)
+# Artefatos do laboratório
 # ----------------------------------------------------------
 *.pdf
 *.docx
