@@ -1,0 +1,71 @@
+@startuml DiagramaCasosDeUso
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor LightBlue
+  BorderColor DarkBlue
+  ArrowColor DarkBlue
+}
+
+actor Cliente
+actor Agente
+actor Empresa  extends Agente
+actor Banco    extends Agente
+actor Sistema
+
+rectangle "Sistema de Aluguel de Carros" {
+
+  '── Autenticação ──────────────────────────────
+  (UC01) as "UC01\nRealizar Cadastro"
+  (UC02) as "UC02\nRealizar Login"
+
+  '── Pedidos ───────────────────────────────────
+  (UC03) as "UC03\nCriar Pedido"
+  (UC04) as "UC04\nConsultar Pedido"
+  (UC05) as "UC05\nModificar Pedido"
+  (UC06) as "UC06\nCancelar Pedido"
+
+  '── Rendimentos / Empregadores ────────────────
+  (UC07) as "UC07\nGerenciar Rendimentos\n[máx. 3]"
+  (UC08) as "UC08\nGerenciar Empregadores\n[máx. 3]"
+
+  '── Avaliação / Contrato ──────────────────────
+  (UC09) as "UC09\nAvaliar Pedido\n(Aprovar/Rejeitar)"
+  (UC10) as "UC10\nGerar Contrato\n[automático]"
+  (UC11) as "UC11\nAssociar Crédito"
+
+  '── Automóveis ────────────────────────────────
+  (UC12) as "UC12\nConsultar Automóveis\nDisponíveis"
+}
+
+'── Relacionamentos ───────────────────────────────
+Cliente --> (UC01)
+Cliente --> (UC02)
+Cliente --> (UC03)
+Cliente --> (UC04)
+Cliente --> (UC05)
+Cliente --> (UC06)
+Cliente --> (UC07)
+Cliente --> (UC08)
+Cliente --> (UC12)
+
+Agente  --> (UC09)
+Banco   --> (UC11)
+Sistema --> (UC10)
+
+(UC03) ..> (UC02) : <<include>>
+(UC05) ..> (UC04) : <<include>>
+(UC06) ..> (UC04) : <<include>>
+(UC10) ..> (UC09) : <<include>>
+
+note right of (UC10)
+  Gerado automaticamente
+  após aprovação (UC09)
+end note
+
+note right of (UC07)
+  Regra: máximo 3
+  por cliente
+end note
+
+@enduml

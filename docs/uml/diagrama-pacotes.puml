@@ -1,0 +1,106 @@
+@startuml DiagramaPacotes
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor AliceBlue
+  BorderColor MidnightBlue
+}
+
+package "br.com.pucminas.aluguelcarros" {
+
+  package "controller" {
+    [AuthController]
+    [ClienteController]
+    [PedidoController]
+    [ContratoController]
+    [AutomovelController]
+  }
+
+  package "service" {
+    [AuthService]
+    [ClienteService]
+    [PedidoService]
+    [AvaliacaoService]
+    [ContratoService]
+  }
+
+  package "repository" {
+    [ClienteRepository]
+    [PedidoRepository]
+    [ContratoRepository]
+    [ContratoCreditoRepository]
+    [AutomovelRepository]
+    [AvaliacaoRepository]
+    [RendimentoRepository]
+    [EmpregadorRepository]
+  }
+
+  package "domain" {
+
+    package "model" {
+      [Usuario]
+      [Cliente]
+      [Agente]
+      [Empresa]
+      [Banco]
+      [Pedido]
+      [Contrato]
+      [ContratoCredito]
+      [Automovel]
+      [Rendimento]
+      [Empregador]
+      [Avaliacao]
+    }
+
+    package "enums" {
+      [StatusPedido]
+    }
+
+    package "interfaces" {
+      [Proprietario]
+    }
+  }
+
+  package "dto" {
+    [ClienteRequestDTO]
+    [ClienteResponseDTO]
+    [PedidoRequestDTO]
+    [PedidoResponseDTO]
+    [AvaliacaoRequestDTO]
+    [RendimentoDTO]
+    [EmpregadorDTO]
+    [AuthRequestDTO]
+    [AuthResponseDTO]
+  }
+
+  package "exception" {
+    [RecursoNaoEncontradoException]
+    [RegraDeNegocioException]
+  }
+}
+
+' Dependências entre camadas (unidirecionais)
+controller --> service
+controller --> dto
+service    --> repository
+service    --> domain
+service    --> exception
+repository --> domain
+
+note bottom of controller
+  Camada HTTP: recebe requisições,
+  delega para services, retorna DTOs.
+  Segurança via @Secured + JWT.
+end note
+
+note bottom of service
+  Regras de negócio: limites de
+  rendimentos/empregadores, ciclo
+  de vida do pedido, geração de contrato.
+end note
+
+note bottom of repository
+  Micronaut Data JPA.
+  Queries geradas em compile-time.
+end note
+
+@enduml

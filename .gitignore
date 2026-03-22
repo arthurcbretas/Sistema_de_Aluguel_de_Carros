@@ -1,0 +1,73 @@
+# ============================================================
+# .gitignore — Sistema de Aluguel de Carros (LAB02)
+# ============================================================
+
+# ----------------------------------------------------------
+# Artefatos do laboratório (não versionar enunciados em PDF
+# e cópias do docx na raiz — o original fica em docs/uml/)
+# ----------------------------------------------------------
+*.pdf
+/*.docx
+
+# ----------------------------------------------------------
+# Build — Gradle
+# ----------------------------------------------------------
+.gradle/
+build/
+out/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ----------------------------------------------------------
+# IDEs
+# ----------------------------------------------------------
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.eclipse/
+.classpath
+.project
+.settings/
+bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ----------------------------------------------------------
+# JVM / Java
+# ----------------------------------------------------------
+*.class
+hs_err_pid*
+
+# ----------------------------------------------------------
+# Micronaut / Spring
+# ----------------------------------------------------------
+# Configurações locais com segredos
+application-local.yml
+application-local.yaml
+.env
+.env.local
+*.env
+
+# ----------------------------------------------------------
+# Logs
+# ----------------------------------------------------------
+*.log
+logs/

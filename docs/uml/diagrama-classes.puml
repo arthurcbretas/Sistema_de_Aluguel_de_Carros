@@ -1,0 +1,144 @@
+@startuml DiagramaClasses
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor LightYellow
+  BorderColor DarkGoldenRod
+  ArrowColor DarkSlateGray
+}
+
+'── Enum ──────────────────────────────────────────────────────────────
+enum StatusPedido {
+  PENDENTE
+  APROVADO
+  REJEITADO
+  CANCELADO
+}
+
+'── Interface ─────────────────────────────────────────────────────────
+interface Proprietario {
+  +getTipoProprietario(): String
+  +getDocumento(): String
+}
+
+'── Hierarquia Usuario (JOINED) ───────────────────────────────────────
+abstract class Usuario {
+  -idUsuario: Long
+  -nome: String
+  -login: String
+  -senha: String
+  -endereco: String
+}
+
+class Cliente {
+  -cpf: String
+  -rg: String
+  -profissao: String
+  +getTipoProprietario(): String
+  +getDocumento(): String
+}
+Cliente --|> Usuario
+Cliente ..|> Proprietario
+
+'── Hierarquia Agente (JOINED) ────────────────────────────────────────
+abstract class Agente {
+  -idAgente: Long
+  -cnpj: String
+  -nome: String
+  -login: String
+  -senha: String
+}
+
+class Empresa {
+  -razaoSocial: String
+  +getTipoProprietario(): String
+  +getDocumento(): String
+}
+class Banco {
+  -nomeBanco: String
+  -codigoBancario: String
+  +getTipoProprietario(): String
+  +getDocumento(): String
+}
+Empresa --|> Agente
+Banco   --|> Agente
+Empresa ..|> Proprietario
+Banco   ..|> Proprietario
+
+'── Pedido / Contrato ─────────────────────────────────────────────────
+class Pedido {
+  -idPedido: Long
+  -dataCriacao: LocalDateTime
+  -dataInicioAluguel: LocalDate
+  -dataFimAluguel: LocalDate
+  -status: StatusPedido
+  -valorEstimado: BigDecimal
+}
+
+class Contrato {
+  -idContrato: Long
+  -dataAssinatura: LocalDate
+  -dataInicio: LocalDate
+  -dataFim: LocalDate
+  -assinado: Boolean
+  -valorFinal: BigDecimal
+}
+
+class ContratoCredito {
+  -idContratoCredito: Long
+  -valorCredito: BigDecimal
+  -parcelas: Integer
+  -taxaJurosMensal: BigDecimal
+}
+
+'── Avaliação ─────────────────────────────────────────────────────────
+class Avaliacao {
+  -idAvaliacao: Long
+  -dataAvaliacao: LocalDateTime
+  -parecer: String
+  -justificativa: String
+}
+
+'── Automóvel ─────────────────────────────────────────────────────────
+class Automovel {
+  -idAutomovel: Long
+  -matricula: String
+  -placa: String
+  -marca: String
+  -modelo: String
+  -ano: Integer
+  -disponivel: Boolean
+  ' três FKs nullable (apenas uma preenchida)
+}
+
+'── Rendimento / Empregador ───────────────────────────────────────────
+class Rendimento {
+  -idRendimento: Long
+  -descricao: String
+  -valorMensal: BigDecimal
+}
+
+class Empregador {
+  -idEmpregador: Long
+  -nome: String
+  -cnpj: String
+  -cargo: String
+}
+
+'── Relacionamentos ───────────────────────────────────────────────────
+Cliente "1" --> "0..*" Pedido         : realiza >
+Cliente "1" --> "0..3" Rendimento     : possui (máx 3) >
+Cliente "1" --> "0..3" Empregador     : possui (máx 3) >
+
+Pedido  "1" --> "0..1" Contrato       : gera >
+Pedido  "1" --> "*"    Avaliacao      : recebe >
+Agente  "1" --> "*"    Avaliacao      : realiza >
+Contrato "1" --> "0..1" ContratoCredito : possui >
+ContratoCredito "0..*" --> "1" Banco  : concedido por >
+
+Automovel "0..*" --> "0..1" Cliente   : clienteProprietario
+Automovel "0..*" --> "0..1" Empresa   : empresaProprietaria
+Automovel "0..*" --> "0..1" Banco     : bancoProprietario
+
+Pedido --> StatusPedido
+
+@enduml
