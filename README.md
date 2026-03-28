@@ -355,12 +355,12 @@ Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 
 ### Sprint 02 — Componentes + CRUD Cliente
 
-> **A entregar:**
+> **Entregues:**
 
-- [ ] Revisão dos diagramas (feedback Sprint 01)
-- [ ] Diagrama de Componentes do Sistema
-- [ ] Implementação do CRUD completo de Cliente (Micronaut + JPA)
-- [ ] Autenticação JWT com Micronaut Security
+- [x] Revisão dos diagramas (feedback Sprint 01 — sem alterações necessárias)
+- [x] Diagrama de Componentes do Sistema ([`/docs/uml/diagrama-componentes.puml`](docs/uml/diagrama-componentes.puml))
+- [x] Implementação do CRUD completo de Cliente (Micronaut + JPA)
+- [x] Autenticação JWT com Micronaut Security
 
 ---
 
@@ -390,6 +390,12 @@ Os diagramas estão na pasta [`/docs/uml/`](docs/uml/) como arquivos PlantUML (`
 ### Diagrama de Pacotes
 
 ![Diagrama de Pacotes](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-pacotes.puml&fmt=svg)
+
+### Diagrama de Componentes *(Sprint 02)*
+
+![Diagrama de Componentes](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-componentes.puml&fmt=svg)
+
+---
 
 ---
 
@@ -489,6 +495,93 @@ Cliente "1" --> "0..*" Pedido
 Pedido  "1" --> "0..1" Contrato
 Agente  "1" --> "*"    Avaliacao
 Pedido  "1" --> "*"    Avaliacao
+@enduml
+```
+
+### Diagrama de Componentes — PlantUML *(Sprint 02)*
+
+```plantuml
+@startuml diagrama-componentes
+skinparam componentStyle rectangle
+
+node "Cliente REST\n(Browser / API Client)" as CLIENT
+
+package "Micronaut Web Server (HTTP :8080)" {
+
+  package "Security" {
+    [Micronaut Security JWT] as JWT
+  }
+
+  package "Controller Layer" {
+    [AuthController\n/auth] as AUTH_CTRL
+    [ClienteController\n/clientes] as CLI_CTRL
+    [PedidoController\n/pedidos] as PED_CTRL
+    [ContratoController\n/contratos] as CON_CTRL
+    [AutomovelController\n/automoveis] as AUT_CTRL
+  }
+
+  package "Service Layer" {
+    [AuthService] as AUTH_SVC
+    [ClienteService] as CLI_SVC
+    [PedidoService] as PED_SVC
+    [AvaliacaoService] as AVAL_SVC
+    [ContratoService] as CON_SVC
+  }
+
+  package "Repository Layer (Micronaut Data JPA)" {
+    [ClienteRepository] as CLI_REPO
+    [RendimentoRepository] as REN_REPO
+    [EmpregadorRepository] as EMP_REPO
+    [PedidoRepository] as PED_REPO
+    [AvaliacaoRepository] as AVAL_REPO
+    [ContratoRepository] as CON_REPO
+    [AutomovelRepository] as AUT_REPO
+  }
+
+  package "Domain Model" {
+    [Entities / Enums / Interfaces] as DOMAIN
+  }
+}
+
+database "PostgreSQL 15\n(produção)" as DB_PROD
+database "H2 In-Memory\n(dev/testes)" as DB_DEV
+
+CLIENT --> AUTH_CTRL
+CLIENT --> CLI_CTRL
+CLIENT --> PED_CTRL
+CLIENT --> CON_CTRL
+CLIENT --> AUT_CTRL
+
+AUTH_CTRL .> JWT
+CLI_CTRL  .> JWT
+PED_CTRL  .> JWT
+CON_CTRL  .> JWT
+AUT_CTRL  .> JWT
+
+AUTH_CTRL --> AUTH_SVC
+CLI_CTRL  --> CLI_SVC
+PED_CTRL  --> PED_SVC
+PED_CTRL  --> AVAL_SVC
+CON_CTRL  --> CON_SVC
+
+AUTH_SVC  --> CLI_REPO
+CLI_SVC   --> CLI_REPO
+CLI_SVC   --> REN_REPO
+CLI_SVC   --> EMP_REPO
+PED_SVC   --> PED_REPO
+AVAL_SVC  --> AVAL_REPO
+CON_SVC   --> CON_REPO
+
+CLI_REPO  --> DOMAIN
+REN_REPO  --> DOMAIN
+EMP_REPO  --> DOMAIN
+PED_REPO  --> DOMAIN
+AVAL_REPO --> DOMAIN
+CON_REPO  --> DOMAIN
+AUT_REPO  --> DOMAIN
+
+DOMAIN --> DB_PROD
+DOMAIN --> DB_DEV
 @enduml
 ```
 

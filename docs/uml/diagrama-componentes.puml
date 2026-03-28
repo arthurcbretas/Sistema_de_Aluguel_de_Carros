@@ -1,0 +1,113 @@
+@startuml diagrama-componentes
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FAFAFA
+skinparam component {
+  BorderColor #555
+  BackgroundColor #E8F4FD
+  FontSize 12
+}
+skinparam package {
+  BorderColor #333
+  FontSize 13
+  FontStyle bold
+}
+skinparam database {
+  BorderColor #555
+  BackgroundColor #FFF3CD
+}
+skinparam node {
+  BorderColor #555
+  BackgroundColor #D4EDDA
+}
+
+node "Cliente REST\n(Browser / API Client)" as CLIENT
+
+package "Micronaut Web Server (HTTP :8080)" {
+
+  package "Security" {
+    [Micronaut Security JWT] as JWT
+  }
+
+  package "Controller Layer" {
+    [AuthController\n/auth] as AUTH_CTRL
+    [ClienteController\n/clientes] as CLI_CTRL
+    [PedidoController\n/pedidos] as PED_CTRL
+    [ContratoController\n/contratos] as CON_CTRL
+    [AutomovelController\n/automoveis] as AUT_CTRL
+  }
+
+  package "Service Layer" {
+    [AuthService] as AUTH_SVC
+    [ClienteService] as CLI_SVC
+    [PedidoService] as PED_SVC
+    [AvaliacaoService] as AVAL_SVC
+    [ContratoService] as CON_SVC
+  }
+
+  package "Repository Layer (Micronaut Data JPA)" {
+    [ClienteRepository] as CLI_REPO
+    [RendimentoRepository] as REN_REPO
+    [EmpregadorRepository] as EMP_REPO
+    [PedidoRepository] as PED_REPO
+    [AvaliacaoRepository] as AVAL_REPO
+    [ContratoRepository] as CON_REPO
+    [ContratoCreditoRepository] as CC_REPO
+    [AutomovelRepository] as AUT_REPO
+  }
+
+  package "Domain Model" {
+    [Entities / Enums / Interfaces\n(JPA @Entity)] as DOMAIN
+  }
+}
+
+database "PostgreSQL 15\n(produção)" as DB_PROD
+database "H2 In-Memory\n(dev / testes)" as DB_DEV
+
+' ── HTTP ────────────────────────────────────────────────────────────
+CLIENT --> AUTH_CTRL : POST /auth/register\nPOST /login
+CLIENT --> CLI_CTRL  : GET|PUT /clientes/{id}\nGET|POST|DELETE /rendimentos\nGET|POST /empregadores
+CLIENT --> PED_CTRL  : POST|GET|PUT|DELETE /pedidos\nPOST /pedidos/{id}/avaliar
+CLIENT --> CON_CTRL  : GET /contratos/{id}\nPOST /contratos/{id}/credito
+CLIENT --> AUT_CTRL  : GET /automoveis
+
+' ── Security ────────────────────────────────────────────────────────
+AUTH_CTRL .up.> JWT
+CLI_CTRL  .up.> JWT
+PED_CTRL  .up.> JWT
+CON_CTRL  .up.> JWT
+AUT_CTRL  .up.> JWT
+
+' ── Controller -> Service ────────────────────────────────────────────
+AUTH_CTRL --> AUTH_SVC
+CLI_CTRL  --> CLI_SVC
+PED_CTRL  --> PED_SVC
+PED_CTRL  --> AVAL_SVC
+CON_CTRL  --> CON_SVC
+
+' ── Service -> Repository ────────────────────────────────────────────
+AUTH_SVC  --> CLI_REPO
+CLI_SVC   --> CLI_REPO
+CLI_SVC   --> REN_REPO
+CLI_SVC   --> EMP_REPO
+PED_SVC   --> PED_REPO
+AVAL_SVC  --> AVAL_REPO
+AVAL_SVC  --> PED_REPO
+CON_SVC   --> CON_REPO
+CON_SVC   --> CC_REPO
+
+' ── Repository -> Domain ─────────────────────────────────────────────
+CLI_REPO  --> DOMAIN
+REN_REPO  --> DOMAIN
+EMP_REPO  --> DOMAIN
+PED_REPO  --> DOMAIN
+AVAL_REPO --> DOMAIN
+CON_REPO  --> DOMAIN
+CC_REPO   --> DOMAIN
+AUT_REPO  --> DOMAIN
+
+' ── Domain -> Database ───────────────────────────────────────────────
+DOMAIN --> DB_PROD : JPA/Hibernate\n(produção)
+DOMAIN --> DB_DEV  : JPA/Hibernate\n(dev/test)
+
+@enduml
