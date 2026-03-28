@@ -1,0 +1,55 @@
+micronaut:
+  application:
+    name: aluguel-carros
+  server:
+    port: 8080
+
+  # ── Segurança JWT ────────────────────────────────────────────────────
+  security:
+    enabled: true
+    authentication: bearer
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_GENERATOR_SIGNATURE_SECRET:pleaseChangeThisSecretForANewOne}"
+    intercept-url-map:
+      - pattern: /auth/**
+        http-method: POST
+        access:
+          - isAnonymous()
+      - pattern: /swagger/**
+        access:
+          - isAnonymous()
+      - pattern: /**
+        access:
+          - isAuthenticated()
+
+# ── Banco de dados (PostgreSQL — produção) ───────────────────────────
+datasources:
+  default:
+    url: "${DATASOURCE_URL:`jdbc:postgresql://localhost:5432/aluguelcarros`}"
+    username: "${DATASOURCE_USERNAME:`postgres`}"
+    password: "${DATASOURCE_PASSWORD:`postgres`}"
+    driver-class-name: org.postgresql.Driver
+    dialect: POSTGRES
+
+# ── JPA / Hibernate ──────────────────────────────────────────────────
+jpa:
+  default:
+    entity-scan:
+      packages: "br.com.pucminas.aluguelcarros.domain.model"
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate          # nunca auto-migra em produção
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        show_sql: false
+
+# ── Logging ──────────────────────────────────────────────────────────
+logger:
+  levels:
+    io.micronaut: INFO
+    br.com.pucminas: INFO
