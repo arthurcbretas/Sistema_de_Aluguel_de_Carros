@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     // ── Micronaut Core ──────────────────────────────────────────────────
+    implementation("io.projectreactor:reactor-core")
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
@@ -44,6 +45,9 @@ dependencies {
     // ── Banco de Dados ──────────────────────────────────────────────────
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2:2.2.224")          // pinado: suporte JOINED + Hibernate 6
+
+    // ── YAML Parsing ────────────────────────────────────────────────────
+    runtimeOnly("org.yaml:snakeyaml")
 
     // ── Logging ─────────────────────────────────────────────────────────
     runtimeOnly("ch.qos.logback:logback-classic")
