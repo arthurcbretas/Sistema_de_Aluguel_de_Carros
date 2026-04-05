@@ -12,6 +12,8 @@ import br.com.pucminas.aluguelcarros.repository.RendimentoRepository;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.util.List;
 
 @Singleton
@@ -46,7 +48,7 @@ public class ClienteService {
         Cliente cliente = new Cliente();
         cliente.setNome(dto.getNome());
         cliente.setLogin(dto.getLogin());
-        cliente.setSenha(dto.getSenha()); // TODO: hash com BCrypt
+        cliente.setSenha(BCrypt.hashpw(dto.getSenha(), BCrypt.gensalt(12))); 
         cliente.setEndereco(dto.getEndereco());
         cliente.setCpf(dto.getCpf());
         cliente.setRg(dto.getRg());
@@ -67,6 +69,12 @@ public class ClienteService {
         cliente.setEndereco(dto.getEndereco());
         cliente.setProfissao(dto.getProfissao());
         return clienteRepository.update(cliente);
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+        Cliente cliente = buscarPorId(id);
+        clienteRepository.delete(cliente);
     }
 
     // ── Rendimentos ───────────────────────────────────────────────────────

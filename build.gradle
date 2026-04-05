@@ -31,6 +31,9 @@ dependencies {
     // ── Micronaut Security / JWT ────────────────────────────────────────
     implementation("io.micronaut.security:micronaut-security-jwt")
 
+    // ── Segurança (BCrypt) ──────────────────────────────────────────────
+    implementation("org.mindrot:jbcrypt:0.4")
+
     // ── Micronaut Validation ────────────────────────────────────────────
     implementation("io.micronaut.validation:micronaut-validation")
     annotationProcessor("io.micronaut.validation:micronaut-validation-processor")

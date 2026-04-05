@@ -33,6 +33,12 @@ public class ClienteController {
         return toResponse(clienteService.atualizar(id, dto));
     }
 
+    @Delete("/{id}")
+    public HttpResponse<Void> deletar(@PathVariable Long id) {
+        clienteService.deletar(id);
+        return HttpResponse.noContent();
+    }
+
     // ── Rendimentos ───────────────────────────────────────────────────────
 
     @Get("/{id}/rendimentos")
