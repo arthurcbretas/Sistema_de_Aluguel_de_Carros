@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Aluguel de Carros | Entrar</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="glass-panel text-center">
+      <h1 class="text-gradient">DriveLux</h1>
+      <p>Gerencie seus aluguéis de carros com agilidade e exclusividade.</p>
+
+      <!-- Form Login -->
+      <form id="loginForm">
+        <div class="form-group text-left">
+          <label for="loginUsername">E-mail (Login)</label>
+          <input type="email" id="loginUsername" required placeholder="Digite seu e-mail">
+        </div>
+        <div class="form-group text-left">
+          <label for="loginPassword">Senha</label>
+          <input type="password" id="loginPassword" required placeholder="Digite sua senha">
+        </div>
+        <button type="submit" id="btnLogin">Acessar Conta</button>
+      </form>
+
+      <div id="loginError" class="hidden" style="color:var(--danger); margin-top: 1rem; font-size: 0.875rem;">
+        Falha ao autenticar. Verifique suas credenciais.
+      </div>
+
+      <p style="margin-top: 1.5rem; font-size: 0.875rem;">
+        Novo por aqui? <a href="#" class="link" onclick="toggleAuthMode()">Crie sua conta</a>
+      </p>
+    </div>
+
+    <!-- Modal Form Cadastro (Hidden initially) -->
+    <div class="modal-overlay" id="registerModal">
+      <div class="modal-content">
+        <h2 class="text-gradient">Criar Conta</h2>
+        <div id="registerMsg" style="display:none; margin-bottom:1rem; padding:0.75rem 1rem; border-radius:8px; font-size:0.875rem; text-align:center;"></div>
+        <form id="registerForm">
+          <div class="form-group">
+            <label for="regNome">Nome Completo</label>
+            <input type="text" id="regNome" required>
+          </div>
+          <div class="d-flex">
+            <div class="form-group" style="flex:1;">
+              <label for="regCpf">CPF</label>
+              <input type="text" id="regCpf" required>
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label for="regRg">RG</label>
+              <input type="text" id="regRg" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="regProfissao">Profissão</label>
+            <input type="text" id="regProfissao" required>
+          </div>
+          <div class="form-group">
+            <label for="regLogin">E-mail (Login)</label>
+            <input type="email" id="regLogin" required>
+          </div>
+          <div class="form-group">
+            <label for="regSenha">Senha</label>
+            <input type="password" id="regSenha" required minlength="6" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="d-flex" style="margin-top: 1.5rem;">
+            <button type="button" class="secondary" onclick="toggleAuthMode()">Cancelar</button>
+            <button type="submit" id="btnCadastrar">Cadastrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

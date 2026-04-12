@@ -9,7 +9,8 @@ import br.com.pucminas.aluguelcarros.repository.AutomovelRepository;
 import br.com.pucminas.aluguelcarros.repository.PedidoRepository;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
-
+import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Singleton
@@ -45,8 +46,15 @@ public class PedidoService {
         pedido.setAutomovel(automovel);
         pedido.setDataInicioAluguel(dto.getDataInicioAluguel());
         pedido.setDataFimAluguel(dto.getDataFimAluguel());
-        pedido.setValorEstimado(dto.getValorEstimado());
         pedido.setStatus(StatusPedido.PENDENTE);
+
+        // ── Cálculo automático do valor estimado ──────────────────────────
+        long dias = ChronoUnit.DAYS.between(dto.getDataInicioAluguel(), dto.getDataFimAluguel());
+        if (dias <= 0) dias = 1;
+        BigDecimal precoDiaria = automovel.getPrecoDiaria() != null
+                ? automovel.getPrecoDiaria()
+                : new BigDecimal("150.00"); // fallback padrão
+        pedido.setValorEstimado(precoDiaria.multiply(BigDecimal.valueOf(dias)));
 
         return pedidoRepository.save(pedido);
     }

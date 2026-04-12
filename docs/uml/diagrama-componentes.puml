@@ -21,7 +21,10 @@ skinparam node {
   BackgroundColor #D4EDDA
 }
 
-node "Cliente REST\n(Browser / API Client)" as CLIENT
+node "Dispositivo do Cliente" as BROWSER_NODE {
+  artifact "SPA Cliente\n(index.html / dashboard.html)" as SPA_CLI
+  artifact "SPA Admin\n(admin-dashboard.html)" as SPA_ADM
+}
 
 package "Micronaut Web Server (HTTP :8080)" {
 
@@ -30,9 +33,10 @@ package "Micronaut Web Server (HTTP :8080)" {
   }
 
   package "Controller Layer" {
-    [AuthController\n/auth] as AUTH_CTRL
+    [AuthController\n/auth /login] as AUTH_CTRL
     [ClienteController\n/clientes] as CLI_CTRL
     [PedidoController\n/pedidos] as PED_CTRL
+    [AvaliacaoController\n/avaliacoes] as AVAL_CTRL
     [ContratoController\n/contratos] as CON_CTRL
     [AutomovelController\n/automoveis] as AUT_CTRL
   }
@@ -47,6 +51,7 @@ package "Micronaut Web Server (HTTP :8080)" {
 
   package "Repository Layer (Micronaut Data JPA)" {
     [ClienteRepository] as CLI_REPO
+    [EmpresaRepository] as EMP_AGT_REPO
     [RendimentoRepository] as REN_REPO
     [EmpregadorRepository] as EMP_REPO
     [PedidoRepository] as PED_REPO
@@ -65,11 +70,13 @@ database "PostgreSQL 15\n(produção)" as DB_PROD
 database "H2 In-Memory\n(dev / testes)" as DB_DEV
 
 ' ── HTTP ────────────────────────────────────────────────────────────
-CLIENT --> AUTH_CTRL : POST /auth/register\nPOST /login
-CLIENT --> CLI_CTRL  : GET|PUT /clientes/{id}\nGET|POST|DELETE /rendimentos\nGET|POST /empregadores
-CLIENT --> PED_CTRL  : POST|GET|PUT|DELETE /pedidos\nPOST /pedidos/{id}/avaliar
-CLIENT --> CON_CTRL  : GET /contratos/{id}\nPOST /contratos/{id}/credito
-CLIENT --> AUT_CTRL  : GET /automoveis
+SPA_CLI --> AUTH_CTRL : POST /auth/register | POST /login
+SPA_CLI --> CLI_CTRL  : GET|PUT /clientes
+SPA_CLI --> PED_CTRL  : POST|GET|PUT|DELETE /pedidos
+SPA_CLI --> AUT_CTRL  : GET /automoveis
+SPA_ADM --> PED_CTRL  : GET /pedidos/pendentes
+SPA_ADM --> AVAL_CTRL : POST /avaliacoes/{idPedido}
+SPA_ADM --> AUT_CTRL  : GET|POST|PUT|DELETE /automoveis (ROLE_AGENTE)
 
 ' ── Security ────────────────────────────────────────────────────────
 AUTH_CTRL .up.> JWT
@@ -78,19 +85,21 @@ PED_CTRL  .up.> JWT
 CON_CTRL  .up.> JWT
 AUT_CTRL  .up.> JWT
 
-' ── Controller -> Service ────────────────────────────────────────────
-AUTH_CTRL --> AUTH_SVC
-CLI_CTRL  --> CLI_SVC
-PED_CTRL  --> PED_SVC
-PED_CTRL  --> AVAL_SVC
-CON_CTRL  --> CON_SVC
+' ── Controller -> Service ───────────────────────────────────────────────
+AUTH_CTRL  --> AUTH_SVC
+CLI_CTRL   --> CLI_SVC
+PED_CTRL   --> PED_SVC
+AVAL_CTRL  --> AVAL_SVC
+CON_CTRL   --> CON_SVC
 
-' ── Service -> Repository ────────────────────────────────────────────
+' ── Service -> Repository ──────────────────────────────────────────────
 AUTH_SVC  --> CLI_REPO
+AUTH_SVC  --> EMP_AGT_REPO
 CLI_SVC   --> CLI_REPO
 CLI_SVC   --> REN_REPO
 CLI_SVC   --> EMP_REPO
 PED_SVC   --> PED_REPO
+PED_SVC   --> AUT_REPO
 AVAL_SVC  --> AVAL_REPO
 AVAL_SVC  --> PED_REPO
 CON_SVC   --> CON_REPO

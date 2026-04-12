@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DriveLux | Administração</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="admin">
+
+  <div class="dashboard-container">
+    <header>
+      <div>
+        <h2 class="text-gradient" style="margin:0;">Painel Administrativo</h2>
+        <p style="margin:0; font-size: 0.875rem;">Visão do Agente Financeiro.</p>
+      </div>
+      <div class="d-flex">
+        <button class="secondary" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <div class="tabs" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+      <button id="tabPedidosBtn" class="active" onclick="switchAdminTab('pedidos')" style="flex:1;">Avaliações Pendentes</button>
+      <button id="tabFrotaBtn" class="secondary" onclick="switchAdminTab('frota')" style="flex:1;">Minha Frota Automotiva</button>
+    </div>
+
+    <!-- SEÇÃO 1: PEDIDOS -->
+    <div id="pedidosSection" class="glass-panel wide">
+      <h3>Pedidos Pendentes para Análise</h3>
+      
+      <div id="loading" style="color:var(--text-muted); text-align:center; padding: 2rem;">
+        Carregando pendências...
+      </div>
+      
+      <div id="noPedidos" class="hidden" style="color:var(--text-muted); text-align:center; padding: 2rem;">
+        Não há pedidos pendentes de aprovação no momento.
+      </div>
+      
+      <div id="pedidosGrid" class="grid hidden">
+        <!-- Renderizado via JS -->
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: FROTA -->
+    <div id="frotaSection" class="glass-panel wide hidden">
+      <div class="d-flex" style="justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h3 style="margin: 0;">Gestão de Veículos</h3>
+        <button onclick="openNovoCarroModal()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">+ Novo Veículo</button>
+      </div>
+
+      <div id="loadingFrota" style="color:var(--text-muted); text-align:center; padding: 2rem;">
+        Carregando frota...
+      </div>
+
+      <div id="noFrota" class="hidden" style="color:var(--text-muted); text-align:center; padding: 2rem;">
+        Sua empresa ainda não possui veículos cadastrados.
+      </div>
+
+      <div id="frotaGrid" class="grid hidden">
+         <!-- Renderizado via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes e Avaliação do Pedido -->
+  <div class="modal-overlay" id="detalhesPedidoModal">
+    <div class="modal-content">
+      <h2 class="text-gradient">Avaliar Pedido</h2>
+      <div id="detalhesContent">
+        <!-- Preenchido via JS -->
+      </div>
+      
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label for="justificativa">Parecer / Justificativa (Opcional)</label>
+        <textarea id="justificativa" rows="3" placeholder="Insira o motivo da decisão se houver..."></textarea>
+      </div>
+
+      <div class="d-flex" style="margin-top: 1.5rem; justify-content: flex-end;">
+        <button type="button" class="danger" id="btnRejeitarPedido" style="margin-right:0.5rem;" onclick="avaliarPedido('REJEITADO')">Rejeitar</button>
+        <button type="button" id="btnAprovarPedido" style="margin-right:0.5rem; background: #2ecc71; color: #1e1e1e;" onclick="avaliarPedido('APROVADO')">Aprovar Contrato</button>
+        <button type="button" class="secondary" onclick="closeDetalhesModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Criação de Carro -->
+  <div class="modal-overlay" id="novoCarroModal">
+    <div class="modal-content">
+      <h2 class="text-gradient">Registrar Novo Veículo</h2>
+      <form id="novoCarroForm">
+        <div class="d-flex" style="gap: 1rem;">
+          <div class="form-group" style="flex:1;">
+            <label for="carMarca">Marca</label>
+            <input type="text" id="carMarca" required placeholder="Ex: Porsche">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="carModelo">Modelo</label>
+            <input type="text" id="carModelo" required placeholder="Ex: 911 Carrera">
+          </div>
+        </div>
+        <div class="d-flex" style="gap: 1rem;">
+          <div class="form-group" style="flex:1;">
+            <label for="carAno">Ano</label>
+            <input type="number" id="carAno" required placeholder="Ex: 2024">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="carPlaca">Placa</label>
+            <input type="text" id="carPlaca" required placeholder="Ex: ABC-1234">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="carMatricula">Matrícula/Chassi</label>
+            <input type="text" id="carMatricula" required placeholder="Ex: POR-911">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="carPrecoDiaria">Preço por Diária (R$)</label>
+          <input type="number" id="carPrecoDiaria" required placeholder="Ex: 350.00" min="1" step="0.01">
+        </div>
+        
+        <div class="d-flex" style="margin-top: 1.5rem; justify-content: flex-end;">
+          <button type="button" class="secondary" onclick="closeNovoCarroModal()" style="margin-right:0.5rem;">Cancelar</button>
+          <button type="submit">Salvar Veículo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

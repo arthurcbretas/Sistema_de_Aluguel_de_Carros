@@ -11,6 +11,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -24,9 +25,12 @@ import org.mindrot.jbcrypt.BCrypt;
 public class AuthService implements AuthenticationProvider<HttpRequest<?>> {
 
     private final ClienteRepository clienteRepository;
+    private final br.com.pucminas.aluguelcarros.repository.EmpresaRepository empresaRepository;
 
-    public AuthService(ClienteRepository clienteRepository) {
+    public AuthService(ClienteRepository clienteRepository,
+                       br.com.pucminas.aluguelcarros.repository.EmpresaRepository empresaRepository) {
         this.clienteRepository = clienteRepository;
+        this.empresaRepository = empresaRepository;
     }
 
     @Override
@@ -38,10 +42,17 @@ public class AuthService implements AuthenticationProvider<HttpRequest<?>> {
         String senha = authenticationRequest.getSecret().toString();
 
         Optional<Cliente> clienteOpt = clienteRepository.findByLogin(login);
-
         if (clienteOpt.isPresent() && BCrypt.checkpw(senha, clienteOpt.get().getSenha())) {
-            return Mono.just(AuthenticationResponse.success(login));
+            return Mono.just(AuthenticationResponse.success(login, List.of("ROLE_CLIENTE")));
         }
+
+        Optional<br.com.pucminas.aluguelcarros.domain.model.Empresa> empresaOpt = empresaRepository.findByLogin(login);
+        // Note: Em ambiente de produção senhas de agente deveriam usar bcrypt também. 
+        // Para a PoC e o Dummy Initializer, estamos em texto puro ou checando equals direto para facilitar
+        if (empresaOpt.isPresent() && senha.equals(empresaOpt.get().getSenha())) {
+            return Mono.just(AuthenticationResponse.success(login, List.of("ROLE_AGENTE")));
+        }
+
         return Mono.just(AuthenticationResponse.failure("Credenciais inválidas."));
     }
 }

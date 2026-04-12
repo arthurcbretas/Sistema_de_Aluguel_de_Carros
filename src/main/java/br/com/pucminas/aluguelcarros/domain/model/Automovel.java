@@ -2,6 +2,9 @@ package br.com.pucminas.aluguelcarros.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.math.BigDecimal;
 
 /**
  * Automóvel disponível para aluguel.
@@ -15,6 +18,8 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Serdeable
+@JsonIgnoreProperties({"clienteProprietario", "empresaProprietaria", "bancoProprietario"})
 public class Automovel {
 
     @Id
@@ -39,6 +44,9 @@ public class Automovel {
 
     @Column(name = "disponivel", nullable = false)
     private Boolean disponivel = true;
+
+    @Column(name = "preco_diaria", precision = 10, scale = 2)
+    private BigDecimal precoDiaria;
 
     // ── Proprietário (três FKs nullable — apenas uma preenchida) ──────────
 

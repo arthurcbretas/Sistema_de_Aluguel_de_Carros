@@ -1,0 +1,35 @@
+@startuml diagrama-implantacao
+skinparam linetype polyline
+skinparam componentStyle uml2
+
+node "Dispositivo do Cliente" <<device>> as clientNode {
+  node "Navegador Web" <<browser>> as browser {
+    artifact "SPA Frontend" <<HTML/JS/CSS>> as SPA
+  }
+}
+
+node "Servidor Micronaut" <<execution environment>> as serverNode {
+  artifact "Application.jar" as jar
+  
+  component "Sistema de Aluguel de Carros" <<component>> as app {
+    component "Controllers (REST)" as controllers
+    component "Services (Business Logic)" as services
+    component "Data Access (JPA/Hibernate)" as dataAccess
+    
+    controllers ..> services
+    services ..> dataAccess
+  }
+  
+  jar *-- app
+}
+
+node "Servidor de Banco de Dados" <<database server>> as dbNode {
+  database "Relational Database" <<PostgreSQL / H2>> as db {
+    artifact "Schema AluguelCarros" as schema
+  }
+}
+
+SPA ..> controllers : <<HTTP/JSON>> \n (Fetch API com JWT)
+dataAccess ..> db : <<TCP/IP>> \n (JDBC)
+
+@enduml

@@ -27,8 +27,7 @@ public class ClienteRequestDTO {
     private String endereco;
 
     @NotBlank
-    @Size(max = 14)
-    private String cpf;
+    private String cpf; // normalizado pelo frontend (somente dígitos)
 
     @Size(max = 20)
     private String rg;

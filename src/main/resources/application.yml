@@ -4,6 +4,12 @@ micronaut:
   server:
     port: 8080
 
+  router:
+    static-resources:
+      default:
+        paths: classpath:public
+        mapping: "/**"
+
   # ── Segurança JWT ────────────────────────────────────────────────────
   security:
     enabled: true
@@ -15,6 +21,18 @@ micronaut:
             generator:
               secret: "${JWT_GENERATOR_SIGNATURE_SECRET:pleaseChangeThisSecretForANewOne}"
     intercept-url-map:
+      - pattern: /*.html
+        access:
+          - isAnonymous()
+      - pattern: /css/**
+        access:
+          - isAnonymous()
+      - pattern: /js/**
+        access:
+          - isAnonymous()
+      - pattern: /
+        access:
+          - isAnonymous()
       - pattern: /auth/**
         http-method: POST
         access:

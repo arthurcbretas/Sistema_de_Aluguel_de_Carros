@@ -3,7 +3,7 @@
 > **LAB02 — Laboratório de Desenvolvimento de Software**  
 > PUC Minas · Engenharia de Software · Prof. João Paulo Carneiro Aramuni
 
-[![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Java](https://img.shields.io/badge/Java-21+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Micronaut](https://img.shields.io/badge/Micronaut-4.x-1F8ACB?style=for-the-badge&logo=micronaut&logoColor=white)](https://micronaut.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-02303A?style=for-the-badge&logo=gradle&logoColor=white)](https://gradle.org/)
@@ -35,18 +35,19 @@ Sistema web para apoio à **gestão de aluguéis de automóveis**, permitindo ef
 
 | Ator | Funcionalidades |
 |------|----------------|
-| **Cliente** | Cadastro, login, criar/consultar/modificar/cancelar pedidos, gerenciar empregadores e rendimentos |
-| **Agente (Empresa)** | Login, avaliar pedidos (aprovar/rejeitar), modificar pedidos |
-| **Agente (Banco)** | Login, avaliar pedidos, associar contratos de crédito |
-| **Sistema** | Geração automática de contratos, registro de propriedade de automóveis |
+| **Cliente** | Cadastro, login, criar/consultar/cancelar pedidos de aluguel, visualizar status e custo estimado |
+| **Agente (Empresa)** | Login, avaliar pedidos (aprovar/rejeitar com justificativa), gerenciar frota de veículos (CRUD) |
+| **Agente (Banco)** | Login, avaliar pedidos, associar contratos de crédito (modelo extensível) |
+| **Sistema** | Cálculo automático do valor estimado (dias × preço diária), geração automática de contratos |
 
 ### Regras de Negócio
 
 - O sistema só pode ser utilizado após cadastro prévio
-- Clientes podem ter até **3 fontes de rendimento** e **3 empregadores** cadastrados
-- Pedidos seguem o ciclo: `PENDENTE → APROVADO/REJEITADO → (contrato gerado)`
+- **Clientes** autenticam com `ROLE_CLIENTE` e são redirecionados ao Dashboard do cliente
+- **Agentes (Empresas)** autenticam com `ROLE_AGENTE` e são redirecionados ao Painel Administrativo
+- Pedidos seguem o ciclo: `PENDENTE → APROVADO/REJEITADO → (contrato gerado)` | `CANCELADO`
+- `valorEstimado` = dias do período × `precoDiaria` do automóvel (calculado pelo servidor)
 - Automóveis podem ser propriedade de **Clientes, Empresas ou Bancos**
-- Um aluguel pode estar associado a um **contrato de crédito** concedido por banco agente
 
 ---
 
@@ -189,15 +190,14 @@ aluguel-carros/
 
 Certifique-se de ter instalado:
 
-- **Java 17+** — [Download JDK](https://adoptium.net/)
+- **Java 21+** — [Download JDK](https://adoptium.net/)
 - **Gradle 8+** — incluído via Gradle Wrapper (`./gradlew`)
-- **PostgreSQL 15+** — para ambiente de produção
-- **Docker** (opcional) — para subir o banco via container
+- **PostgreSQL 15+** — para ambiente de produção (desenvolvimento usa H2 em memória, sem necessidade de banco externo)
 
 Verifique as versões:
 
 ```bash
-java -version    # deve ser 17+
+java -version    # deve ser 21+
 ./gradlew --version
 ```
 
@@ -288,53 +288,50 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ### Autenticação
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/auth/register` | Cadastro de novo usuário |
-| `POST` | `/auth/login` | Login e obtenção de token JWT |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| `POST` | `/auth/register` | Público | Cadastro de novo cliente |
+| `POST` | `/login` | Público | Login e obtenção de token JWT |
 
 ### Clientes
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/clientes/{id}` | Buscar cliente por ID |
-| `PUT` | `/clientes/{id}` | Atualizar dados do cliente |
-| `GET` | `/clientes/{id}/rendimentos` | Listar rendimentos |
-| `POST` | `/clientes/{id}/rendimentos` | Adicionar rendimento (máx. 3) |
-| `DELETE` | `/clientes/{id}/rendimentos/{rid}` | Remover rendimento |
-| `GET` | `/clientes/{id}/empregadores` | Listar empregadores |
-| `POST` | `/clientes/{id}/empregadores` | Adicionar empregador (máx. 3) |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| `GET` | `/clientes/{id}` | Autenticado | Buscar cliente por ID |
+| `PUT` | `/clientes/{id}` | Autenticado | Atualizar dados do cliente |
 
 ### Pedidos
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/pedidos` | Criar novo pedido de aluguel |
-| `GET` | `/pedidos` | Listar pedidos do cliente autenticado |
-| `GET` | `/pedidos/{id}` | Detalhar pedido |
-| `PUT` | `/pedidos/{id}` | Modificar pedido (somente PENDENTE) |
-| `DELETE` | `/pedidos/{id}` | Cancelar pedido (somente PENDENTE) |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| `POST` | `/pedidos` | `ROLE_CLIENTE` | Criar pedido (valor calculado automaticamente) |
+| `GET` | `/pedidos` | `ROLE_CLIENTE` | Listar pedidos do cliente autenticado |
+| `GET` | `/pedidos/{id}` | Autenticado | Detalhar pedido |
+| `DELETE` | `/pedidos/{id}` | `ROLE_CLIENTE` | Cancelar pedido (somente PENDENTE) |
+| `GET` | `/pedidos/pendentes` | `ROLE_AGENTE` | Listar todos os pedidos pendentes |
 
 ### Avaliações (Agentes)
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/pedidos/pendentes` | Listar pedidos pendentes (agentes) |
-| `POST` | `/pedidos/{id}/avaliar` | Aprovar ou rejeitar pedido |
-
-### Contratos
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/contratos/{id}` | Detalhar contrato |
-| `POST` | `/contratos/{id}/credito` | Associar contrato de crédito (Banco) |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| `POST` | `/avaliacoes/{idPedido}` | `ROLE_AGENTE` | Aprovar ou rejeitar pedido + gerar contrato |
 
 ### Automóveis
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/automoveis` | Listar automóveis disponíveis |
-| `GET` | `/automoveis/{id}` | Detalhar automóvel |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| `GET` | `/automoveis` | Autenticado | Listar veículos disponíveis |
+| `GET` | `/automoveis/{id}` | Autenticado | Detalhar veículo |
+| `GET` | `/automoveis/meus` | `ROLE_AGENTE` | Listar frota da empresa autenticada |
+| `POST` | `/automoveis` | `ROLE_AGENTE` | Cadastrar novo veículo na frota |
+| `PUT` | `/automoveis/{id}/disponibilidade` | `ROLE_AGENTE` | Alternar disponibilidade do veículo |
+| `DELETE` | `/automoveis/{id}` | `ROLE_AGENTE` | Remover veículo da frota |
+
+### Contratos
+
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| `GET` | `/contratos/{id}` | Autenticado | Detalhar contrato |
 
 ---
 
@@ -364,14 +361,19 @@ Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 
 ---
 
-### Sprint 03 — Protótipo Final
+### Sprint 03 — Protótipo Final ✅
 
-> **A entregar:**
+> **Entregues:**
 
-- [ ] Revisão dos diagramas (feedback Sprint 02)
-- [ ] Diagrama de Implantação
-- [ ] Protótipo funcional: criação de usuários e visualização de status de pedidos
-- [ ] Apresentação final comparando modelos e implementação
+- [x] Interface Web completa (SPA multi-role: Cliente e Agente)
+- [x] Autenticação JWT com emissão dinâmica de Roles (`ROLE_CLIENTE` / `ROLE_AGENTE`)
+- [x] Roteamento automático por Role pós-login
+- [x] Dashboard do Cliente: histórico de pedidos com status e valor calculado
+- [x] Dashboard Administrativo: avaliação de pedidos e CRUD de frota de veículos
+- [x] Cálculo automático de `valorEstimado` (dias × preço diário do veículo)
+- [x] Geração automática de Contrato ao aprovar pedido
+- [x] Diagrama de Implantação ([`/docs/uml/diagrama-implantacao.puml`](docs/uml/diagrama-implantacao.puml))
+- [x] Suíte de testes JUnit 5 + Mockito
 
 ---
 
@@ -591,13 +593,14 @@ DOMAIN --> DB_DEV
 
 | Tecnologia | Versão | Uso |
 |-----------|--------|-----|
-| **Java** | 17+ | Linguagem principal |
+| **Java** | 21 | Linguagem principal |
 | **Micronaut** | 4.x | Framework web e IoC |
 | **Micronaut Data** | 4.x | ORM / repositórios JPA |
 | **Hibernate** | 6.x | Provider JPA |
 | **PostgreSQL** | 15 | Banco de dados produção |
 | **H2** | 2.x | Banco de dados desenvolvimento/testes |
-| **Micronaut Security** | 4.x | Autenticação JWT |
+| **Micronaut Security** | 4.x | Autenticação JWT + RBAC |
+| **BCrypt** | — | Hash de senhas |
 | **Gradle** | 8.x | Build tool |
 | **JUnit 5** | 5.x | Testes unitários |
 | **Mockito** | 5.x | Mocks para testes |

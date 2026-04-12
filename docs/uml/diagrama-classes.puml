@@ -107,6 +107,7 @@ class Automovel {
   -modelo: String
   -ano: Integer
   -disponivel: Boolean
+  -precoDiaria: BigDecimal
   ' três FKs nullable (apenas uma preenchida)
 }
 
