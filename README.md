@@ -397,6 +397,10 @@ Os diagramas estão na pasta [`/docs/uml/`](docs/uml/) como arquivos PlantUML (`
 
 ![Diagrama de Componentes](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-componentes.puml&fmt=svg)
 
+### Diagrama de Implantação *(Sprint 03)*
+
+![Diagrama de Implantação](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/arthurcbretas/Sistema_de_Aluguel_de_Carros/main/docs/uml/diagrama-implantacao.puml&fmt=svg)
+
 ---
 
 ---
@@ -584,6 +588,46 @@ AUT_REPO  --> DOMAIN
 
 DOMAIN --> DB_PROD
 DOMAIN --> DB_DEV
+@enduml
+```
+
+### Diagrama de Implantação — PlantUML *(Sprint 03)*
+
+```plantuml
+@startuml diagrama-implantacao
+skinparam linetype polyline
+skinparam componentStyle uml2
+
+node "Dispositivo do Cliente" <<device>> as clientNode {
+  node "Navegador Web" <<browser>> as browser {
+    artifact "SPA Frontend" <<HTML/JS/CSS>> as SPA
+  }
+}
+
+node "Servidor Micronaut" <<execution environment>> as serverNode {
+  artifact "Application.jar" as jar
+  
+  component "Sistema de Aluguel de Carros" <<component>> as app {
+    component "Controllers (REST)" as controllers
+    component "Services (Business Logic)" as services
+    component "Data Access (JPA/Hibernate)" as dataAccess
+    
+    controllers ..> services
+    services ..> dataAccess
+  }
+  
+  jar *-- app
+}
+
+node "Servidor de Banco de Dados" <<database server>> as dbNode {
+  database "Relational Database" <<PostgreSQL / H2>> as db {
+    artifact "Schema AluguelCarros" as schema
+  }
+}
+
+SPA ..> controllers : <<HTTP/JSON>> \n (Fetch API com JWT)
+dataAccess ..> db : <<TCP/IP>> \n (JDBC)
+
 @enduml
 ```
 
