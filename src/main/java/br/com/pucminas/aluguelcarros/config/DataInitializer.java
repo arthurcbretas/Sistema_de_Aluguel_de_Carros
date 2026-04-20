@@ -86,17 +86,20 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
             mockBanco.setCodigoBancario("999");
             bancoRepository.save(mockBanco);
         } else {
-            // Atualiza os preços antigos no banco de dados existente (produção)
+            // Atualiza os preços antigos no banco de dados existente (produção) para os valores exatos
             automovelRepository.findAll().forEach(a -> {
-                if (a.getPrecoDiaria().compareTo(new BigDecimal("1000")) < 0) {
-                    if (a.getModelo().equals("C-Class"))
-                        a.setPrecoDiaria(new BigDecimal("1350.00"));
-                    else if (a.getModelo().equals("Serie 3"))
-                        a.setPrecoDiaria(new BigDecimal("1420.00"));
-                    else if (a.getModelo().equals("A5 Sportback"))
-                        a.setPrecoDiaria(new BigDecimal("1390.00"));
-                    automovelRepository.update(a);
+                boolean mudou = false;
+                if (a.getModelo().equals("C-Class") && a.getPrecoDiaria().compareTo(new BigDecimal("950.00")) != 0) {
+                    a.setPrecoDiaria(new BigDecimal("950.00"));
+                    mudou = true;
+                } else if (a.getModelo().equals("Serie 3") && a.getPrecoDiaria().compareTo(new BigDecimal("790.00")) != 0) {
+                    a.setPrecoDiaria(new BigDecimal("790.00"));
+                    mudou = true;
+                } else if (a.getModelo().equals("A5 Sportback") && a.getPrecoDiaria().compareTo(new BigDecimal("850.00")) != 0) {
+                    a.setPrecoDiaria(new BigDecimal("850.00"));
+                    mudou = true;
                 }
+                if (mudou) automovelRepository.update(a);
             });
         }
     }
