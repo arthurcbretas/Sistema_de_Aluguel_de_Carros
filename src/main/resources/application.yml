@@ -2,7 +2,7 @@ micronaut:
   application:
     name: aluguel-carros
   server:
-    port: 8080
+    port: ${PORT:8080}
 
   router:
     static-resources:
@@ -44,12 +44,12 @@ micronaut:
         access:
           - isAuthenticated()
 
-# ── Banco de dados (PostgreSQL — produção) ───────────────────────────
+# ── Banco de dados (PostgreSQL — produção / Railway) ─────────────────
 datasources:
   default:
-    url: "${DATASOURCE_URL:`jdbc:postgresql://localhost:5432/aluguelcarros`}"
-    username: "${DATASOURCE_USERNAME:`postgres`}"
-    password: "${DATASOURCE_PASSWORD:`postgres`}"
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/aluguelcarros}
+    username: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     dialect: POSTGRES
 
@@ -61,7 +61,7 @@ jpa:
     properties:
       hibernate:
         hbm2ddl:
-          auto: validate          # nunca auto-migra em produção
+          auto: update            # cria/atualiza schema automaticamente no Railway
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
         show_sql: false
