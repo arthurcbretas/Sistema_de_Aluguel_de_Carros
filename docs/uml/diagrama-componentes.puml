@@ -24,6 +24,7 @@ skinparam node {
 node "Dispositivo do Cliente" as BROWSER_NODE {
   artifact "SPA Cliente\n(index.html / dashboard.html)" as SPA_CLI
   artifact "SPA Admin\n(admin-dashboard.html)" as SPA_ADM
+  artifact "SPA Banco\n(bank-dashboard.html)" as SPA_BAN
 }
 
 package "Micronaut Web Server (HTTP :8080)" {
@@ -52,6 +53,7 @@ package "Micronaut Web Server (HTTP :8080)" {
   package "Repository Layer (Micronaut Data JPA)" {
     [ClienteRepository] as CLI_REPO
     [EmpresaRepository] as EMP_AGT_REPO
+    [BancoRepository] as BAN_REPO
     [RendimentoRepository] as REN_REPO
     [EmpregadorRepository] as EMP_REPO
     [PedidoRepository] as PED_REPO
@@ -77,6 +79,8 @@ SPA_CLI --> AUT_CTRL  : GET /automoveis
 SPA_ADM --> PED_CTRL  : GET /pedidos/pendentes
 SPA_ADM --> AVAL_CTRL : POST /avaliacoes/{idPedido}
 SPA_ADM --> AUT_CTRL  : GET|POST|PUT|DELETE /automoveis (ROLE_AGENTE)
+SPA_BAN --> CON_CTRL  : GET /contratos/pendentes-credito (ROLE_BANCO)
+SPA_BAN --> CON_CTRL  : POST /contratos/{id}/credito (ROLE_BANCO)
 
 ' ── Security ────────────────────────────────────────────────────────
 AUTH_CTRL .up.> JWT
@@ -95,6 +99,7 @@ CON_CTRL   --> CON_SVC
 ' ── Service -> Repository ──────────────────────────────────────────────
 AUTH_SVC  --> CLI_REPO
 AUTH_SVC  --> EMP_AGT_REPO
+AUTH_SVC  --> BAN_REPO
 CLI_SVC   --> CLI_REPO
 CLI_SVC   --> REN_REPO
 CLI_SVC   --> EMP_REPO
@@ -106,6 +111,7 @@ CON_SVC   --> CON_REPO
 CON_SVC   --> CC_REPO
 
 ' ── Repository -> Domain ─────────────────────────────────────────────
+BAN_REPO  --> DOMAIN
 CLI_REPO  --> DOMAIN
 REN_REPO  --> DOMAIN
 EMP_REPO  --> DOMAIN

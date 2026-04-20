@@ -4,10 +4,13 @@ import br.com.pucminas.aluguelcarros.domain.model.ContratoCredito;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.repository.CrudRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ContratoCreditoRepository extends CrudRepository<ContratoCredito, Long> {
 
     Optional<ContratoCredito> findByContratoIdContrato(Long idContrato);
+
+    List<ContratoCredito> findByBancoLogin(String login);
 }

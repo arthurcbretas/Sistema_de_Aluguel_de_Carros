@@ -1,5 +1,8 @@
 const API_BASE = window.location.origin;
 
+// ── Cache de catálogo (para filtros) ──────────────────────────────────
+let allCatalogoCars = [];
+
 // ── Authentication & Routing ──────────────────────────────────────────
 function getToken() {
   return localStorage.getItem('jwt_token');
@@ -18,12 +21,14 @@ function getAuthHeaders() {
 }
 
 function checkAuthAndRoute() {
-  const isDashboard = window.location.pathname.includes('dashboard.html') && !window.location.pathname.includes('admin');
-  const isAdmin = window.location.pathname.includes('admin-dashboard.html');
-  const isIndex = !isDashboard && !isAdmin;
+  const path = window.location.pathname;
+  const isClientDash = path === '/dashboard.html';
+  const isAdminDash = path.includes('admin-dashboard');
+  const isBankDash = path.includes('bank-dashboard');
+  const isIndex = !isClientDash && !isAdminDash && !isBankDash;
   const token = getToken();
   
-  if ((isDashboard || isAdmin) && !token) {
+  if ((isClientDash || isAdminDash || isBankDash) && !token) {
     window.location.href = '/index.html';
     return;
   }
@@ -33,39 +38,58 @@ function checkAuthAndRoute() {
   if (token) {
     try {
       payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.roles && payload.roles.includes('ROLE_AGENTE')) {
+      // ⚠️ ROLE_BANCO DEVE ser verificado ANTES de ROLE_AGENTE
+      if (payload.roles && payload.roles.includes('ROLE_BANCO')) {
+        role = 'ROLE_BANCO';
+      } else if (payload.roles && payload.roles.includes('ROLE_AGENTE')) {
         role = 'ROLE_AGENTE';
       }
     } catch(e) {}
   }
 
-  if (isIndex && token) {
-    window.location.href = role === 'ROLE_AGENTE' ? '/admin-dashboard.html' : '/dashboard.html';
+  // Sem token na index → fica na index (não redireciona)
+  if (isIndex && !token) {
     return;
   }
 
-  if (isDashboard && role === 'ROLE_AGENTE') {
-     window.location.href = '/admin-dashboard.html';
-     return;
-  }
-  if (isAdmin && role === 'ROLE_CLIENTE') {
-     window.location.href = '/dashboard.html';
-     return;
+  // Redirect da index para o dashboard correto (com token)
+  if (isIndex && token) {
+    if (role === 'ROLE_BANCO') window.location.href = '/bank-dashboard.html';
+    else if (role === 'ROLE_AGENTE') window.location.href = '/admin-dashboard.html';
+    else window.location.href = '/dashboard.html';
+    return;
   }
 
-  if (isDashboard || isAdmin) {
-    if (isDashboard) {
-      loadAutomoveis();
-      loadPedidos();
-    } else {
-      loadPendentes();
+  // Guards: redireciona se o usuário acessar a página errada manualmente
+  if (token) {
+    if (role === 'ROLE_BANCO' && !isBankDash) {
+      window.location.href = '/bank-dashboard.html';
+      return;
     }
-    
-    try {
-      const display = document.getElementById('usernameDisplay');
-      if(display) display.textContent = payload.sub || 'Usuário';
-    } catch(e) {}
+    if (role === 'ROLE_AGENTE' && !isAdminDash) {
+      window.location.href = '/admin-dashboard.html';
+      return;
+    }
+    if (role === 'ROLE_CLIENTE' && !isClientDash) {
+      window.location.href = '/dashboard.html';
+      return;
+    }
   }
+
+  // Carrega dados conforme a página
+  if (isClientDash) {
+    loadAutomoveis();
+    loadPedidos();
+  } else if (isAdminDash) {
+    loadPendentes();
+  } else if (isBankDash) {
+    loadContratosPendentes();
+  }
+    
+  try {
+    const display = document.getElementById('usernameDisplay');
+    if(display) display.textContent = payload.sub || 'Usuário';
+  } catch(e) {}
 }
 
 function logout() {
@@ -191,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         idAutomovel: parseInt(idCarro),
         dataInicioAluguel: document.getElementById('dataInicio').value,
         dataFimAluguel: document.getElementById('dataFim').value,
-        status: "PENDENTE"
+        necessitaCredito: document.getElementById('necessitaCredito').checked
       };
 
       try {
@@ -226,7 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ano: parseInt(document.getElementById('carAno').value),
         placa: document.getElementById('carPlaca').value,
         matricula: document.getElementById('carMatricula').value,
-        precoDiaria: parseFloat(document.getElementById('carPrecoDiaria').value) || 150.00
+        precoDiaria: parseFloat(document.getElementById('carPrecoDiaria').value) || 150.00,
+        imagemUrl: document.getElementById('carImagemUrl')?.value || null
       };
 
       try {
@@ -290,6 +315,7 @@ async function loadPedidos() {
       grid.innerHTML = pedidos.map(p => `
         <div class="card" onclick="openDetalhesModal(${p.idPedido})">
           <span class="badge status-${p.status}">${p.status}</span>
+          ${p.necessitaCredito ? '<span class="badge" style="background:#3498db;">\uD83D\uDCB3 Crédito</span>' : ''}
           <h4>Pedido #${p.idPedido}</h4>
           <p style="margin-bottom: 0.5rem">Início: ${new Date(p.dataInicioAluguel).toLocaleDateString()}</p>
           <p style="margin-bottom: 0">Fim: ${new Date(p.dataFimAluguel).toLocaleDateString()}</p>
@@ -396,6 +422,7 @@ window.loadPendentes = async function() {
       grid.innerHTML = pedidos.map(p => `
         <div class="card" onclick="openAdminDetalhesModal(${p.idPedido})">
           <span class="badge status-${p.status}">${p.status}</span>
+          ${p.necessitaCredito ? '<span class="badge" style="background:#3498db;">\uD83D\uDCB3 Crédito</span>' : ''}
           <h4>Pedido #${p.idPedido}</h4>
           <p>Cliente ID: ${p.idCliente}</p>
           <p>Auto ID: ${p.idAutomovel}</p>
@@ -496,19 +523,24 @@ window.loadFrota = async function() {
       grid.classList.remove('hidden');
       
       grid.innerHTML = carros.map(c => `
-        <div class="card" style="${!c.disponivel ? 'opacity: 0.6;' : ''}">
-          <span class="badge ${c.disponivel ? 'status-APROVADO' : 'status-CANCELADO'}" style="float:right;">
-             ${c.disponivel ? 'Disponível' : 'Indisponível'}
-          </span>
-          <h4>${c.marca} ${c.modelo} (${c.ano})</h4>
-          <p>Placa: ${c.placa}</p>
-          <p>Matrícula: ${c.matricula}</p>
-          <strong style="display:block; margin: 0.5rem 0; color: var(--primary);">R$ ${c.precoDiaria ? c.precoDiaria.toFixed(2) : '---'}/dia</strong>
-          <div class="d-flex" style="margin-top: 1rem; gap: 0.5rem;">
-            <button class="secondary" style="font-size: 0.75rem; padding: 0.25rem;" onclick="toggleAutomovel(${c.idAutomovel})">
+        <div class="car-card" style="${!c.disponivel ? 'opacity: 0.6;' : ''}">
+          ${c.imagemUrl 
+            ? `<img src="${c.imagemUrl}" alt="${c.marca} ${c.modelo}" class="car-card-img" onerror="this.outerHTML='<div class=\\'car-card-img-placeholder\\'>🚗</div>'">`
+            : '<div class="car-card-img-placeholder">🚗</div>'}
+          <div class="car-card-body">
+            <span class="badge ${c.disponivel ? 'status-APROVADO' : 'status-CANCELADO'}" style="width:fit-content;">
+               ${c.disponivel ? 'Disponível' : 'Indisponível'}
+            </span>
+            <h4>${c.marca} ${c.modelo} (${c.ano})</h4>
+            ${c.nomeProprietario ? `<span class="car-card-owner">🏢 ${c.nomeProprietario}</span>` : ''}
+            <p class="car-card-meta">Placa: ${c.placa} · Matrícula: ${c.matricula}</p>
+            <div class="car-card-price">R$ ${c.precoDiaria ? c.precoDiaria.toFixed(2) : '---'}/dia</div>
+          </div>
+          <div class="car-card-actions d-flex" style="gap: 0.5rem;">
+            <button class="secondary" style="font-size: 0.75rem; padding: 0.4rem;" onclick="toggleAutomovel(${c.idAutomovel})">
               ${c.disponivel ? 'Suspender' : 'Ativar'}
             </button>
-            <button class="danger" style="font-size: 0.75rem; padding: 0.25rem;" onclick="deleteAutomovel(${c.idAutomovel})">Exc</button>
+            <button class="danger" style="font-size: 0.75rem; padding: 0.4rem;" onclick="deleteAutomovel(${c.idAutomovel})">Excluir</button>
           </div>
         </div>
       `).join('');
@@ -561,3 +593,313 @@ window.deleteAutomovel = async function(id) {
     console.error(e);
   }
 };
+
+// ── Client Tab Switching (Pedidos / Catálogo de Frota) ──────────────────
+
+window.switchClientTab = function(tab) {
+  const pedidosBtn = document.getElementById('tabMeusPedidosBtn');
+  const frotaBtn = document.getElementById('tabFrotaCatalogoBtn');
+  const pedidosSec = document.getElementById('meusPedidosSection');
+  const frotaSec = document.getElementById('frotaCatalogoSection');
+
+  if (!pedidosBtn || !frotaBtn) return;
+
+  if (tab === 'pedidos') {
+    pedidosBtn.className = 'active';
+    frotaBtn.className = 'secondary';
+    pedidosSec.classList.remove('hidden');
+    frotaSec.classList.add('hidden');
+    loadPedidos();
+  } else {
+    frotaBtn.className = 'active';
+    pedidosBtn.className = 'secondary';
+    frotaSec.classList.remove('hidden');
+    pedidosSec.classList.add('hidden');
+    loadFrotaCatalogo();
+  }
+};
+
+// ── Fleet Catalog (Client-Side) ─────────────────────────────────────────
+
+async function loadFrotaCatalogo() {
+  const grid = document.getElementById('catalogoGrid');
+  const loading = document.getElementById('loadingCatalogo');
+  const empty = document.getElementById('noCatalogo');
+  if (!grid) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/automoveis`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error();
+    const carros = await res.json();
+    
+    allCatalogoCars = carros.filter(c => c.disponivel);
+    loading.classList.add('hidden');
+    
+    populateFilters(allCatalogoCars);
+    renderCatalogo(allCatalogoCars);
+  } catch (e) {
+    loading.textContent = "Erro ao carregar catálogo de veículos.";
+  }
+}
+
+function populateFilters(carros) {
+  const marcaSelect = document.getElementById('filterMarca');
+  const anoSelect = document.getElementById('filterAno');
+  if (!marcaSelect || !anoSelect) return;
+
+  const marcas = [...new Set(carros.map(c => c.marca))].sort();
+  const anos = [...new Set(carros.map(c => c.ano))].sort((a, b) => b - a);
+
+  marcaSelect.innerHTML = '<option value="">Todas as Marcas</option>' + 
+    marcas.map(m => `<option value="${m}">${m}</option>`).join('');
+  
+  anoSelect.innerHTML = '<option value="">Todos os Anos</option>' + 
+    anos.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+function filterFrotaCatalogo() {
+  const search = (document.getElementById('searchFrota')?.value || '').toLowerCase();
+  const marca = document.getElementById('filterMarca')?.value || '';
+  const ano = document.getElementById('filterAno')?.value || '';
+
+  let filtered = allCatalogoCars;
+
+  if (search) {
+    filtered = filtered.filter(c => 
+      c.marca.toLowerCase().includes(search) || 
+      c.modelo.toLowerCase().includes(search) ||
+      c.placa.toLowerCase().includes(search) ||
+      (c.nomeProprietario && c.nomeProprietario.toLowerCase().includes(search))
+    );
+  }
+  if (marca) {
+    filtered = filtered.filter(c => c.marca === marca);
+  }
+  if (ano) {
+    filtered = filtered.filter(c => c.ano === parseInt(ano));
+  }
+
+  renderCatalogo(filtered);
+}
+
+function renderCatalogo(carros) {
+  const grid = document.getElementById('catalogoGrid');
+  const empty = document.getElementById('noCatalogo');
+  if (!grid) return;
+
+  if (carros.length === 0) {
+    empty.classList.remove('hidden');
+    grid.classList.add('hidden');
+  } else {
+    empty.classList.add('hidden');
+    grid.classList.remove('hidden');
+    
+    grid.innerHTML = carros.map(c => `
+      <div class="car-card">
+        ${c.imagemUrl 
+          ? `<img src="${c.imagemUrl}" alt="${c.marca} ${c.modelo}" class="car-card-img" onerror="this.outerHTML='<div class=\\'car-card-img-placeholder\\'>🚗</div>'">`
+          : '<div class="car-card-img-placeholder">🚗</div>'}
+        <div class="car-card-body">
+          <h4>${c.marca} ${c.modelo} (${c.ano})</h4>
+          ${c.nomeProprietario ? `<span class="car-card-owner">🏢 Proprietário: ${c.nomeProprietario}</span>` : ''}
+          <p class="car-card-meta">Placa: ${c.placa} · Matrícula: ${c.matricula}</p>
+          <div class="car-card-price">R$ ${c.precoDiaria ? c.precoDiaria.toFixed(2) : '---'}/dia</div>
+        </div>
+        <div class="car-card-actions">
+          <button onclick="alugarAgora(${c.idAutomovel}, '${c.marca} ${c.modelo}')">Alugar Agora</button>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+/**
+ * Atalho para abrir o modal de pedido com o carro já selecionado.
+ */
+window.alugarAgora = function(idAutomovel, nomeAutomovel) {
+  // Muda para aba de pedidos e abre o modal
+  switchClientTab('pedidos');
+  
+  // Aguarda a select ser populada e seleciona o carro
+  setTimeout(() => {
+    const select = document.getElementById('carroSelect');
+    if (select) {
+      // Tenta selecionar o carro pelo ID
+      for (let opt of select.options) {
+        if (opt.value == idAutomovel) {
+          opt.selected = true;
+          break;
+        }
+      }
+    }
+    openNovoPedidoModal();
+  }, 300);
+};
+
+// ── Bank Dashboard Functions ────────────────────────────────────────────
+
+let activeCreditoContratoId = null;
+
+window.switchBankTab = function(tab) {
+  const pendentesBtn = document.getElementById('tabPendentesBtn');
+  const historicoBtn = document.getElementById('tabHistoricoBtn');
+  const pendentesSec = document.getElementById('pendentesSection');
+  const historicoSec = document.getElementById('historicoSection');
+
+  if (!pendentesBtn || !historicoBtn) return;
+
+  if (tab === 'pendentes') {
+    pendentesBtn.classList.replace('secondary', 'active');
+    historicoBtn.classList.replace('active', 'secondary');
+    pendentesSec.classList.remove('hidden');
+    historicoSec.classList.add('hidden');
+    loadContratosPendentes();
+  } else {
+    historicoBtn.classList.replace('secondary', 'active');
+    pendentesBtn.classList.replace('active', 'secondary');
+    historicoSec.classList.remove('hidden');
+    pendentesSec.classList.add('hidden');
+    loadCreditosAssociados();
+  }
+};
+
+/**
+ * Carrega contratos aprovados que ainda não possuem crédito associado.
+ * Endpoint: GET /contratos/pendentes-credito (ROLE_BANCO)
+ */
+window.loadContratosPendentes = async function() {
+  const grid = document.getElementById('pendentesGrid');
+  const loading = document.getElementById('loadingPendentes');
+  const empty = document.getElementById('noPendentes');
+  if (!grid) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/contratos/pendentes-credito`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error();
+    const contratos = await res.json();
+
+    loading.classList.add('hidden');
+    if (contratos.length === 0) {
+      empty.classList.remove('hidden');
+      grid.classList.add('hidden');
+    } else {
+      empty.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      grid.innerHTML = contratos.map(c => `
+        <div class="card">
+          <span class="badge status-APROVADO">Aprovado</span>
+          <span class="badge" style="background:#3498db;">\uD83D\uDCB3 Crédito Solicitado</span>
+          <h4>Contrato #${c.idContrato}</h4>
+          <p><strong>Período:</strong> ${c.dataInicio} — ${c.dataFim}</p>
+          <p><strong>Valor Final:</strong> R$ ${c.valorFinal ? c.valorFinal.toFixed(2) : '---'}</p>
+          <button onclick="openCreditoModal(${c.idContrato}, ${c.valorFinal || 0})" style="margin-top:1rem; width:100%; font-size:0.85rem;">
+            💳 Associar Crédito
+          </button>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    loading.textContent = "Erro ao carregar contratos pendentes.";
+  }
+};
+
+/**
+ * Abre o modal para associar crédito a um contrato.
+ */
+window.openCreditoModal = function(idContrato, valorSugerido) {
+  activeCreditoContratoId = idContrato;
+  const info = document.getElementById('creditoContratoInfo');
+  if (info) {
+    info.innerHTML = `<p style="margin-bottom:1rem;"><strong>Contrato:</strong> #${idContrato}</p>`;
+  }
+  document.getElementById('creditoErrorMsg')?.classList.add('hidden');
+  document.getElementById('creditoForm')?.reset();
+  // Pré-preenche o valor do crédito com o valor final do contrato
+  if (valorSugerido && valorSugerido > 0) {
+    const creditoValorInput = document.getElementById('creditoValor');
+    if (creditoValorInput) creditoValorInput.value = valorSugerido.toFixed(2);
+  }
+  document.getElementById('creditoModal').classList.add('active');
+};
+
+window.closeCreditoModal = function() {
+  document.getElementById('creditoModal').classList.remove('active');
+  activeCreditoContratoId = null;
+};
+
+/**
+ * Carrega créditos já associados pelo banco logado.
+ * Endpoint: GET /contratos/creditos-banco (ROLE_BANCO)
+ */
+window.loadCreditosAssociados = async function() {
+  const grid = document.getElementById('historicoGrid');
+  const loading = document.getElementById('loadingHistorico');
+  const empty = document.getElementById('noHistorico');
+  if (!grid) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/contratos/creditos-banco`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error();
+    const creditos = await res.json();
+
+    loading.classList.add('hidden');
+    if (creditos.length === 0) {
+      empty.classList.remove('hidden');
+      grid.classList.add('hidden');
+    } else {
+      empty.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      grid.innerHTML = creditos.map(c => `
+        <div class="card">
+          <span class="badge" style="background:#2ecc71;">\u2705 Associado</span>
+          <h4>Contrato #${c.idContrato}</h4>
+          <p><strong>Valor Crédito:</strong> R$ ${c.valorCredito ? c.valorCredito.toFixed(2) : '---'}</p>
+          <p><strong>Parcelas:</strong> ${c.parcelas}x</p>
+          <p><strong>Taxa Juros:</strong> ${c.taxaJurosMensal ? c.taxaJurosMensal.toFixed(2) : '0'}% a.m.</p>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    loading.textContent = "Erro ao carregar créditos.";
+  }
+};
+
+// Listener do formulário de crédito
+document.addEventListener('DOMContentLoaded', () => {
+  const creditoForm = document.getElementById('creditoForm');
+  if (creditoForm) {
+    creditoForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!activeCreditoContratoId) return;
+
+      const valor = document.getElementById('creditoValor').value;
+      const parcelas = document.getElementById('creditoParcelas').value;
+      const taxaJuros = document.getElementById('creditoTaxa').value;
+      const errDiv = document.getElementById('creditoErrorMsg');
+
+      try {
+        // ⚠️ Parâmetros via query string, NÃO body JSON (@QueryValue no controller)
+        const url = `${API_BASE}/contratos/${activeCreditoContratoId}/credito?valor=${valor}&parcelas=${parcelas}&taxaJuros=${taxaJuros}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: getAuthHeaders()
+        });
+
+        if (res.ok || res.status === 201) {
+          closeCreditoModal();
+          loadContratosPendentes();
+          alert('✅ Crédito associado com sucesso!');
+        } else {
+          const err = await res.json();
+          errDiv.textContent = err.message || 'Erro ao associar crédito.';
+          errDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errDiv.textContent = 'Erro de rede ao associar crédito.';
+        errDiv.classList.remove('hidden');
+      }
+    });
+  }
+});

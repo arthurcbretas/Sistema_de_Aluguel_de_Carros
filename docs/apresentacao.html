@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DriveLux — Sistema de Aluguel de Carros</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0a0a1a;
+    color: #e0e0e0;
+  }
+
+  /* ── SLIDES ───────────────────────────────────────────── */
+  .deck { position: relative; width: 100%; height: 100%; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 36px 64px 56px;
+    background: linear-gradient(160deg, #1a1a2e 0%, #0f3460 100%);
+    overflow: hidden;
+  }
+  .slide.active { display: flex; }
+  .slide.cover {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(145deg, #0f3460 0%, #1a1a2e 50%, #0a0a1a 100%);
+  }
+
+  /* ── TIPOGRAFIA ───────────────────────────────────────── */
+  h1 { font-size: 1.85em; color: #00d2ff; margin-bottom: .25em; line-height: 1.1; }
+  h2 { font-size: 1.2em; color: #00d2ff; margin: .45em 0 .2em; border-bottom: 2px solid #16213e; padding-bottom: .1em; }
+  h3 { font-size: 1.02em; color: #00d2ff; margin: .35em 0 .15em; }
+  p, li { font-size: .93em; line-height: 1.55; }
+  ul, ol { margin-left: 1.4em; margin-bottom: .3em; }
+  li { margin-bottom: .15em; }
+  strong, b { color: #00d2ff; }
+  em { color: #e94560; font-style: normal; }
+
+  .subtitle { font-size: 1.2em; color: #b0b0b0; margin-top: .25em; }
+  .meta { font-size: .9em; color: #999; margin-top: .8em; line-height: 1.6; }
+
+  /* ── CAIXAS DE DESTAQUE ───────────────────────────────── */
+  .highlight-box {
+    background: #16213e;
+    border-left: 4px solid #00d2ff;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 16px;
+    margin: .4em 0;
+    font-size: .88em;
+    line-height: 1.45;
+  }
+  .highlight-box.warn { border-left-color: #e94560; }
+
+  /* ── TABELAS ──────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: .35em 0; font-size: .88em; }
+  th { background: #16213e; color: #00d2ff; text-align: left; padding: 7px 12px; font-weight: 600; }
+  td { background: #0f3460; padding: 6px 12px; border-bottom: 1px solid #1a1a2e; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── DIAGRAMA TEXTO ───────────────────────────────────── */
+  .diagram {
+    background: #0d1b2a;
+    border: 1px solid #1b2838;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: .72em;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+    color: #7fdbca;
+    margin: .35em 0;
+  }
+
+  /* ── COLUNAS ──────────────────────────────────────────── */
+  .cols { display: flex; gap: 24px; margin-top: .3em; }
+  .cols > div { flex: 1; }
+
+  /* ── CARDS DE FEATURE ─────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: .35em;
+  }
+  .feature-card {
+    background: #0d1b2a;
+    border: 1px solid #1b2838;
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .feature-card h3 { margin-top: 0; font-size: .95em; }
+  .feature-card p { font-size: .82em; color: #bbb; margin: 0; }
+
+  /* ── BADGE ────────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: .82em;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .badge-blue  { background: #1565c0; color: #fff; }
+  .badge-green { background: #2e7d32; color: #fff; }
+  .badge-cyan  { background: #00838f; color: #fff; }
+
+  /* ── NAVEGAÇÃO ────────────────────────────────────────── */
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 32px;
+    background: rgba(10,10,26,.92);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid #1b2838;
+    z-index: 100;
+  }
+  .nav button {
+    background: #16213e;
+    color: #00d2ff;
+    border: 1px solid #00d2ff44;
+    padding: 8px 22px;
+    border-radius: 6px;
+    font-size: .95em;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .nav button:hover { background: #0f3460; }
+  .nav button:disabled { opacity: .3; cursor: default; }
+  .nav .counter { color: #888; font-size: .9em; }
+
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, #00d2ff, #e94560);
+    transition: width .3s ease;
+    z-index: 101;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slide.active > * {
+    animation: fadeIn .4s ease both;
+  }
+  .slide.active > *:nth-child(2) { animation-delay: .05s; }
+  .slide.active > *:nth-child(3) { animation-delay: .1s; }
+  .slide.active > *:nth-child(4) { animation-delay: .15s; }
+  .slide.active > *:nth-child(5) { animation-delay: .2s; }
+  .slide.active > *:nth-child(6) { animation-delay: .25s; }
+  .slide.active > *:nth-child(7) { animation-delay: .3s; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="deck" id="deck">
+
+<!-- =========================================================== -->
+<!--  1 — CAPA                                                    -->
+<!-- =========================================================== -->
+<section class="slide cover">
+  <h1>DriveLux</h1>
+  <p class="subtitle">Sistema de Aluguel de Carros</p>
+  <p class="meta">
+    <strong>LAB02</strong> — Laboratório de Desenvolvimento de Software<br>
+    PUC Minas · Engenharia de Software<br>
+    Prof. João Paulo Carneiro Aramuni
+  </p>
+</section>
+
+<!-- =========================================================== -->
+<!--  2 — AGENDA                                                   -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Agenda</h1>
+  <ol>
+    <li>O que é o DriveLux</li>
+    <li>Quem usa o sistema — Atores</li>
+    <li>Como funciona — Fluxo de negócio</li>
+    <li>Regras de negócio</li>
+    <li>Tecnologias utilizadas</li>
+    <li>Por que o Micronaut?</li>
+    <li>Como o sistema foi organizado — Arquitetura</li>
+    <li>Modelo de dados</li>
+    <li>Segurança</li>
+    <li>O que o Micronaut facilitou</li>
+    <li>Dificuldades e desafios</li>
+    <li>Evolução — Sprints</li>
+    <li>O que aprendi</li>
+  </ol>
+</section>
+
+<!-- =========================================================== -->
+<!--  3 — O QUE É                                                  -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>O que é o DriveLux?</h1>
+  <p>Um <strong>sistema web</strong> onde o cliente acessa pelo navegador, escolhe um carro, faz o pedido de aluguel e acompanha tudo online.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>Fazer Pedidos</h3>
+      <p>Escolher carro, datas e opcionalmente pedir financiamento</p>
+    </div>
+    <div class="feature-card">
+      <h3>Avaliar e Aprovar</h3>
+      <p>A empresa analisa e gera contratos automaticamente</p>
+    </div>
+    <div class="feature-card">
+      <h3>Financiamento</h3>
+      <p>O banco associa crédito a quem solicitou</p>
+    </div>
+    <div class="feature-card">
+      <h3>Cálculos Automáticos</h3>
+      <p>Valor do aluguel = dias × diária do carro</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  4 — ATORES                                                   -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Quem usa o sistema?</h1>
+  <table>
+    <tr><th>Ator</th><th>O que faz</th><th>Tela</th></tr>
+    <tr>
+      <td><strong>Cliente</strong></td>
+      <td>Cadastra-se, navega no catálogo de carros, cria pedidos, pode pedir crédito</td>
+      <td>Dashboard do Cliente</td>
+    </tr>
+    <tr>
+      <td><strong>Empresa</strong></td>
+      <td>Avalia pedidos (aprova ou rejeita), gerencia a frota de carros</td>
+      <td>Painel Administrativo</td>
+    </tr>
+    <tr>
+      <td><strong>Banco</strong></td>
+      <td>Vê contratos que pediram crédito, define valor, parcelas e juros</td>
+      <td>Painel Bancário</td>
+    </tr>
+    <tr>
+      <td><strong>Sistema</strong></td>
+      <td>Calcula valor do aluguel e gera contratos automaticamente</td>
+      <td>—</td>
+    </tr>
+  </table>
+
+  <div class="highlight-box">
+    Cada ator tem sua <strong>própria tela</strong>. Ao fazer login, o sistema identifica o tipo de usuário e redireciona para o painel correto.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  5 — FLUXO                                                    -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Como funciona?</h1>
+  <div class="diagram">  CLIENTE                   EMPRESA                   BANCO
+     │                        │                        │
+     │  1. Cria pedido        │                        │
+     │     (carro, datas,     │                        │
+     │      crédito?)         │                        │
+     │ ──────────────────────►│                        │
+     │                        │  2. Avalia e aprova    │
+     │                        │     → Contrato gerado  │
+     │                        │                        │
+     │                        │  3. Se pediu crédito:  │
+     │                        │  ─────────────────────►│
+     │                        │                        │  4. Define valor,
+     │                        │                        │     parcelas e juros
+     │◄───────────────────────┤◄───────────────────────│
+     │        Contrato finalizado!</div>
+</section>
+
+<!-- =========================================================== -->
+<!--  6 — REGRAS DE NEGÓCIO                                        -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Regras de Negócio</h1>
+  <ul>
+    <li>O <strong>valor do aluguel</strong> é calculado automaticamente: <em>dias × preço da diária</em></li>
+    <li>Pedido aprovado → contrato gerado automaticamente</li>
+    <li>O cliente pode marcar que <strong>necessita de crédito</strong> ao criar o pedido — essa decisão é definitiva</li>
+    <li>O banco <strong>só vê contratos onde o cliente pediu financiamento</strong></li>
+    <li>Cada cliente pode ter no máximo <strong>3 rendimentos</strong> e <strong>3 empregadores</strong></li>
+    <li>Login e CPF são <strong>únicos</strong></li>
+    <li>Um automóvel pode pertencer a um <strong>Cliente, Empresa ou Banco</strong></li>
+  </ul>
+
+  <div class="highlight-box">
+    <strong>Ciclo do pedido:</strong> PENDENTE → APROVADO (gera contrato) ou REJEITADO. O cliente pode CANCELAR antes da avaliação.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  7 — TECNOLOGIAS                                              -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Tecnologias Utilizadas</h1>
+  <div class="cols">
+    <div>
+      <h2>Backend</h2>
+      <table>
+        <tr><td>Linguagem</td><td><strong>Java 17</strong></td></tr>
+        <tr><td>Framework</td><td><strong>Micronaut 4</strong></td></tr>
+        <tr><td>Banco de Dados</td><td><strong>PostgreSQL</strong> (produção)<br><strong>H2</strong> (desenvolvimento)</td></tr>
+        <tr><td>ORM</td><td><strong>Hibernate</strong> (Micronaut Data)</td></tr>
+        <tr><td>Segurança</td><td><strong>JWT</strong> + BCrypt</td></tr>
+        <tr><td>Servidor</td><td><strong>Netty</strong> (embutido)</td></tr>
+        <tr><td>Build</td><td><strong>Gradle</strong></td></tr>
+      </table>
+    </div>
+    <div>
+      <h2>Frontend</h2>
+      <table>
+        <tr><td>HTML / CSS / JS</td><td><strong>Puro</strong> (sem React/Angular)</td></tr>
+        <tr><td>Design</td><td><strong>Glassmorphism</strong> escuro</td></tr>
+        <tr><td>Comunicação</td><td><strong>Fetch API</strong> + JWT</td></tr>
+      </table>
+      <h2>Testes</h2>
+      <table>
+        <tr><td>Unitários</td><td><strong>JUnit 5</strong> + Mockito</td></tr>
+        <tr><td>Integração</td><td><strong>Micronaut Test</strong></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  8 — POR QUE MICRONAUT                                        -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Por que o Micronaut?</h1>
+  <p>O <strong>Micronaut</strong> é um framework Java moderno, alternativa ao Spring Boot, focado em <strong>performance</strong> e <strong>leveza</strong>.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>Rápido para iniciar</h3>
+      <p>Inicia em ~2 segundos (Spring Boot leva ~5-8s)</p>
+    </div>
+    <div class="feature-card">
+      <h3>Usa pouca memória</h3>
+      <p>~70-100 MB contra ~150-300 MB do Spring</p>
+    </div>
+    <div class="feature-card">
+      <h3>Detecta erros antes</h3>
+      <p>Processa na compilação — erros aparecem antes de rodar</p>
+    </div>
+    <div class="feature-card">
+      <h3>Parecido com Spring</h3>
+      <p>Anotações similares — fácil para quem já conhece</p>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    O Micronaut foi escolhido pelo requisito do LAB de utilizar um framework <strong>diferente do Spring Boot</strong>, e se mostrou uma alternativa viável e produtiva.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  9 — ARQUITETURA                                              -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Arquitetura do Sistema</h1>
+  <p>O sistema segue o padrão <strong>MVC em camadas</strong> — cada camada tem uma responsabilidade:</p>
+  <div class="diagram">  ┌─────────────────────────────────────────────────────┐
+  │               FRONTEND (Navegador)                  │
+  │      Páginas HTML + JavaScript + CSS                │
+  │      Comunicação via HTTP com token JWT             │
+  └──────────────────────┬──────────────────────────────┘
+                         │
+  ┌──────────────────────▼──────────────────────────────┐
+  │  CONTROLLERS — Recebem as requisições               │
+  ├─────────────────────────────────────────────────────┤
+  │  SERVICES — Regras de negócio                       │
+  │      (validações, cálculos, geração de contratos)   │
+  ├─────────────────────────────────────────────────────┤
+  │  REPOSITORIES — Acesso ao banco de dados            │
+  ├─────────────────────────────────────────────────────┤
+  │  DOMAIN — Entidades (Pedido, Contrato, etc.)        │
+  └──────────────────────┬──────────────────────────────┘
+                         │
+  ┌──────────────────────▼──────────────────────────────┐
+  │  BANCO DE DADOS                                     │
+  │      PostgreSQL (produção) / H2 (desenvolvimento)   │
+  └─────────────────────────────────────────────────────┘</div>
+</section>
+
+<!-- =========================================================== -->
+<!--  10 — MODELO DE DADOS                                         -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Modelo de Dados</h1>
+  <p>Utilizei <strong>herança de classes</strong> para representar os tipos de usuário:</p>
+  <div class="diagram">                        ┌────────────┐
+                        │   Usuário   │   (classe base)
+                        │─────────────│
+                        │  login      │
+                        │  senha      │
+                        └──────┬──────┘
+                               │  herda
+                  ┌────────────┴────────────┐
+                  │                         │
+            ┌─────▼──────┐           ┌──────▼──────┐
+            │   Cliente   │           │   Agente    │
+            │─────────────│           └──────┬──────┘
+            │  CPF        │                  │  herda
+            │  profissão  │         ┌────────┴────────┐
+            └─────────────┘         │                 │
+                              ┌─────▼──────┐   ┌─────▼──────┐
+                              │  Empresa   │   │   Banco    │
+                              └────────────┘   └────────────┘</div>
+  <div class="highlight-box">
+    <strong>Cliente</strong>, <strong>Empresa</strong> e <strong>Banco</strong> compartilham login e senha do Usuário, mas cada um tem seus dados próprios. No banco de dados, cada tipo vira uma tabela separada.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  11 — ENTIDADES                                               -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Principais Entidades</h1>
+  <table>
+    <tr><th>Entidade</th><th>O que representa</th><th>Relacionamento</th></tr>
+    <tr><td><strong>Pedido</strong></td><td>Solicitação de aluguel feita pelo cliente</td><td>Cliente faz vários pedidos</td></tr>
+    <tr><td><strong>Contrato</strong></td><td>Acordo formal após aprovação do pedido</td><td>1 pedido → 1 contrato</td></tr>
+    <tr><td><strong>ContratoCredito</strong></td><td>Termos do financiamento (valor, parcelas, juros)</td><td>1 contrato → 1 crédito</td></tr>
+    <tr><td><strong>Automovel</strong></td><td>Carro disponível para aluguel</td><td>Pertence a Cliente, Empresa ou Banco</td></tr>
+    <tr><td><strong>Avaliacao</strong></td><td>Decisão da empresa sobre um pedido</td><td>1 pedido → 1 avaliação</td></tr>
+    <tr><td><strong>Rendimento</strong></td><td>Fonte de renda do cliente</td><td>Máximo 3 por cliente</td></tr>
+    <tr><td><strong>Empregador</strong></td><td>Empregador do cliente</td><td>Máximo 3 por cliente</td></tr>
+  </table>
+  <div class="highlight-box">
+    No total, o sistema possui <strong>11 entidades</strong> mapeadas no banco de dados e <strong>20+ endpoints</strong> na API REST.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  12 — SEGURANÇA                                               -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Segurança</h1>
+  <p>O sistema usa <strong>JWT (JSON Web Token)</strong> para autenticação. O usuário envia login e senha, recebe um token com seu papel, e envia esse token em todas as próximas requisições.</p>
+
+  <h2>3 papéis no sistema</h2>
+  <table>
+    <tr><th>Papel</th><th>Quem é</th><th>O que acessa</th></tr>
+    <tr><td><span class="badge badge-green">CLIENTE</span></td><td>Pessoa física</td><td>Catálogo, pedidos, perfil</td></tr>
+    <tr><td><span class="badge badge-blue">AGENTE</span></td><td>Empresa (DriveLux)</td><td>Avaliar pedidos, gerenciar carros</td></tr>
+    <tr><td><span class="badge badge-cyan">BANCO</span></td><td>Instituição financeira</td><td>Contratos pendentes de crédito</td></tr>
+  </table>
+
+  <div class="highlight-box">
+    A <strong>senha do cliente</strong> é armazenada com criptografia (BCrypt) — nunca salva em texto puro.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  13 — FACILIDADES                                             -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>O que o Micronaut facilitou</h1>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>Servidor rápido</h3>
+      <p>Inicia em ~2 segundos — muito ágil durante o desenvolvimento e testes</p>
+    </div>
+    <div class="feature-card">
+      <h3>Segurança simples</h3>
+      <p>Login com JWT configurado com poucas linhas — sem criar classes complexas</p>
+    </div>
+    <div class="feature-card">
+      <h3>Troca de banco fácil</h3>
+      <p>Trocar entre H2 (testes) e PostgreSQL (produção) mudando só o perfil</p>
+    </div>
+    <div class="feature-card">
+      <h3>Menos bugs</h3>
+      <p>Erros detectados na hora de compilar, antes de rodar o programa</p>
+    </div>
+    <div class="feature-card">
+      <h3>Tudo embutido</h3>
+      <p>Servidor web já vem junto — só rodar e funciona</p>
+    </div>
+    <div class="feature-card">
+      <h3>Páginas sem config</h3>
+      <p>Colocar HTML na pasta /public e pronto — já serve no navegador</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  14 — DIFICULDADES                                            -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Desafios de Arquitetura</h1>
+
+  <h2>Serialização de entidades JPA para JSON</h2>
+  <p>Entidades com relacionamentos Lazy carregados pelo Hibernate causavam erro ao serem convertidas para JSON fora da transação. Tive que usar anotações para controlar quais campos são serializados e, em alguns casos, retornar objetos intermediários em vez da entidade direta.</p>
+
+  <h2>Comunidade e documentação do Micronaut</h2>
+  <p>Por ser um framework mais novo, o Micronaut tem menos conteúdo disponível online. Precisei recorrer à documentação oficial e ao código-fonte do próprio framework para resolver problemas específicos.</p>
+
+  <h2>Compatibilidade H2 com herança JOINED</h2>
+  <p>A estratégia de herança JOINED no JPA exigiu fixar a versão do H2 (2.2.224) por incompatibilidades com o Hibernate 6. Sem isso, o schema não era gerado corretamente em desenvolvimento.</p>
+</section>
+
+<!-- =========================================================== -->
+<!--  15 — MAIS DIFICULDADES                                       -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Mais Desafios Técnicos</h1>
+
+  <h2>Gerenciamento de ambientes (dev vs produção)</h2>
+  <p>O Micronaut usa variáveis de ambiente para alternar perfis. No Windows, a variável se perdia entre sessões do terminal, fazendo o servidor tentar conectar no PostgreSQL de produção em vez do H2 de desenvolvimento.</p>
+
+  <h2>Encoding UTF-8 no Windows com Gradle</h2>
+  <p>O compilador Java no Windows assume Cp1252 por padrão. Strings com acentos no código-fonte eram corrompidas no build. Exigiu configuração explícita de encoding no Gradle.</p>
+
+  <h2>Autenticação reativa no Micronaut Security</h2>
+  <p>O <code>AuthenticationProvider</code> do Micronaut retorna um <code>Publisher</code> reativo (Project Reactor), diferente do modelo síncrono do Spring Security. Exigiu adaptação para trabalhar com <code>Mono</code> no fluxo de login.</p>
+</section>
+
+<!-- =========================================================== -->
+<!--  16 — COMPARATIVO                                             -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Micronaut vs Spring Boot</h1>
+  <table>
+    <tr><th>Aspecto</th><th>Micronaut</th><th>Spring Boot</th></tr>
+    <tr><td>Tempo para iniciar</td><td><strong>~2 segundos</strong></td><td>~5-8 segundos</td></tr>
+    <tr><td>Uso de memória</td><td><strong>~70-100 MB</strong></td><td>~150-300 MB</td></tr>
+    <tr><td>Detecção de erros</td><td><strong>Na compilação</strong></td><td>Ao rodar o programa</td></tr>
+    <tr><td>Configuração de segurança</td><td><strong>Arquivo YAML</strong></td><td>Classes Java</td></tr>
+    <tr><td>Material de estudo</td><td>Em crescimento</td><td><strong>Muito amplo</strong></td></tr>
+    <tr><td>Facilidade de aprender</td><td>Moderada</td><td><strong>Mais fácil</strong></td></tr>
+    <tr><td>Estilo de código</td><td colspan="2" style="text-align:center;">Muito parecidos — migração fácil entre os dois</td></tr>
+  </table>
+
+  <div class="highlight-box">
+    <strong>Conclusão:</strong> O Micronaut é mais rápido e leve, mas exige mais pesquisa própria. Para projetos que valorizam performance, é uma <strong>excelente alternativa</strong> ao Spring.
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  17 — SPRINTS                                                 -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Evolução do Projeto</h1>
+  <table>
+    <tr><th>Sprint</th><th>O que foi entregue</th></tr>
+    <tr>
+      <td><span class="badge badge-cyan">01</span></td>
+      <td>Modelagem UML — Diagramas de Casos de Uso, Classes e Pacotes</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-cyan">02</span></td>
+      <td>Estrutura do projeto, cadastro de clientes, login com JWT, criptografia de senha, testes</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-cyan">03</span></td>
+      <td>Telas do cliente e admin, catálogo de carros, avaliação de pedidos, contratos automáticos</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-cyan">04</span></td>
+      <td>Ajustes com base no feedback do professor</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">05</span></td>
+      <td>Ator Banco completo — login, tela do banco, associação de crédito</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-green">05.1</span></td>
+      <td>Crédito agora parte do cliente, correção de bugs, histórico de créditos</td>
+    </tr>
+  </table>
+</section>
+
+<!-- =========================================================== -->
+<!--  18 — NÚMEROS                                                 -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>O Projeto em Números</h1>
+  <div class="feature-grid">
+    <div class="feature-card" style="text-align:center;">
+      <h3 style="font-size:1.7em; color:#00d2ff; margin-bottom:2px;">11</h3>
+      <p>Entidades</p>
+    </div>
+    <div class="feature-card" style="text-align:center;">
+      <h3 style="font-size:1.7em; color:#00d2ff; margin-bottom:2px;">20+</h3>
+      <p>Endpoints</p>
+    </div>
+    <div class="feature-card" style="text-align:center;">
+      <h3 style="font-size:1.7em; color:#00d2ff; margin-bottom:2px;">3</h3>
+      <p>Tipos de usuário</p>
+    </div>
+    <div class="feature-card" style="text-align:center;">
+      <h3 style="font-size:1.7em; color:#00d2ff; margin-bottom:2px;">4</h3>
+      <p>Telas</p>
+    </div>
+    <div class="feature-card" style="text-align:center;">
+      <h3 style="font-size:1.7em; color:#00d2ff; margin-bottom:2px;">6</h3>
+      <p>Sprints</p>
+    </div>
+    <div class="feature-card" style="text-align:center;">
+      <h3 style="font-size:1.7em; color:#00d2ff; margin-bottom:2px;">6</h3>
+      <p>Diagramas UML</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  19 — LIÇÕES                                                  -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>O que aprendi</h1>
+  <ul>
+    <li>Micronaut é <strong>produtivo</strong> — servidor rápido agiliza o ciclo de desenvolvimento</li>
+    <li>Separar em <strong>camadas</strong> (MVC) organiza o código e facilita manutenção</li>
+    <li><strong>JWT</strong> simplificou o controle de acesso multi-role</li>
+    <li>H2 em memória permitiu <strong>iterar rápido</strong> sem depender de banco externo</li>
+    <li>Fazer o front em <strong>JavaScript puro</strong> dá conta para o escopo deste projeto</li>
+    <li>A configuração <strong>declarativa via YAML</strong> do Micronaut reduz boilerplate em relação ao Spring</li>
+    <li>Compile-time DI e queries <strong>antecipam erros</strong> que só apareceriam em runtime no Spring Boot</li>
+  </ul>
+</section>
+
+<!-- =========================================================== -->
+<!--  20 — DEMO                                                    -->
+<!-- =========================================================== -->
+<section class="slide">
+  <h1>Demonstração</h1>
+  <p>Agora vou mostrar o sistema funcionando:</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>1. Login como Cliente</h3>
+      <p>Criar pedido com financiamento</p>
+    </div>
+    <div class="feature-card">
+      <h3>2. Login como Empresa</h3>
+      <p>Aprovar o pedido — contrato gerado</p>
+    </div>
+    <div class="feature-card">
+      <h3>3. Login como Banco</h3>
+      <p>Associar crédito ao contrato</p>
+    </div>
+    <div class="feature-card">
+      <h3>4. Resultado</h3>
+      <p>Crédito aparece no histórico</p>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Credenciais de teste:</strong><br>
+    Empresa: drivelux@admin.com / 123456<br>
+    Banco: banco@drivelux.com / 123456<br>
+    Cliente: criar pelo registro na tela inicial
+  </div>
+</section>
+
+<!-- =========================================================== -->
+<!--  21 — ENCERRAMENTO                                            -->
+<!-- =========================================================== -->
+<section class="slide cover">
+  <h1>Obrigado!</h1>
+  <p class="subtitle"><strong>DriveLux</strong> — Sistema de Aluguel de Carros</p>
+  <p class="meta">
+    Java 17 · Micronaut 4 · JWT · PostgreSQL / H2 · JavaScript
+  </p>
+  <br>
+  <h2 style="border:none; margin-top: 1.5em;">Perguntas?</h2>
+</section>
+
+</div><!-- /deck -->
+
+<!-- ── NAVEGAÇÃO ───────────────────────────────────────────────── -->
+<nav class="nav">
+  <button id="btnPrev" onclick="go(-1)">◀ Anterior</button>
+  <span class="counter" id="counter">1 / 21</span>
+  <button id="btnNext" onclick="go(1)">Próximo ▶</button>
+</nav>
+
+<script>
+(function() {
+  var slides = document.querySelectorAll('.slide');
+  var total  = slides.length;
+  var cur = 0;
+
+  function show(i) {
+    for (var j = 0; j < slides.length; j++) slides[j].classList.remove('active');
+    slides[i].classList.add('active');
+    document.getElementById('counter').textContent = (i + 1) + ' / ' + total;
+    document.getElementById('btnPrev').disabled = (i === 0);
+    document.getElementById('btnNext').disabled = (i === total - 1);
+    document.getElementById('progressBar').style.width = ((i + 1) / total * 100) + '%';
+  }
+
+  window.go = function(dir) {
+    var next = cur + dir;
+    if (next >= 0 && next < total) { cur = next; show(cur); }
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault(); go(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault(); go(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); cur = 0; show(cur);
+    } else if (e.key === 'End') {
+      e.preventDefault(); cur = total - 1; show(cur);
+    }
+  });
+
+  var touchStartX = 0;
+  document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', function(e) {
+    var diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+  });
+
+  show(0);
+})();
+</script>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 package br.com.pucminas.aluguelcarros.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"pedido", "contratoCredito"})
 public class Contrato {
 
     @Id
@@ -37,6 +39,10 @@ public class Contrato {
 
     @Column(name = "valor_final", precision = 15, scale = 2)
     private BigDecimal valorFinal;
+
+    /** Flag propagada do Pedido: indica se o cliente solicitou financiamento bancário. */
+    @Column(name = "necessita_credito", nullable = false)
+    private Boolean necessitaCredito = false;
 
     // ── Relacionamentos ───────────────────────────────────────────────────
 

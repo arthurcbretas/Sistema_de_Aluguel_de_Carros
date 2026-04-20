@@ -108,7 +108,10 @@ class Automovel {
   -ano: Integer
   -disponivel: Boolean
   -precoDiaria: BigDecimal
+  -imagemUrl: String
   ' três FKs nullable (apenas uma preenchida)
+  +getNomeProprietario(): String
+  +getTipoProprietario(): String
 }
 
 '── Rendimento / Empregador ───────────────────────────────────────────

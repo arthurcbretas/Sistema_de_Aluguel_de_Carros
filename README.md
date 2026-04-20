@@ -35,16 +35,17 @@ Sistema web para apoio à **gestão de aluguéis de automóveis**, permitindo ef
 
 | Ator | Funcionalidades |
 |------|----------------|
-| **Cliente** | Cadastro, login, criar/consultar/cancelar pedidos de aluguel, visualizar status e custo estimado |
-| **Agente (Empresa)** | Login, avaliar pedidos (aprovar/rejeitar com justificativa), gerenciar frota de veículos (CRUD) |
-| **Agente (Banco)** | Login, avaliar pedidos, associar contratos de crédito (modelo extensível) |
-| **Sistema** | Cálculo automático do valor estimado (dias × preço diária), geração automática de contratos |
+| **Cliente** | Cadastro, login, criar/consultar/cancelar pedidos de aluguel, **solicitar financiamento bancário**, pesquisar catálogo de frota com filtros e imagens, visualizar status e custo estimado |
+| **Agente (Empresa)** | Login, avaliar pedidos (aprovar/rejeitar com justificativa), gerenciar frota de veículos (CRUD **com fotos**) |
+| **Agente (Banco)** | Login, visualizar contratos que solicitaram crédito, associar contratos de crédito com valor/parcelas/juros |
+| **Sistema** | Cálculo automático do valor estimado (dias × preço diária), geração automática de contratos, **exibição do proprietário nos veículos** |
 
 ### Regras de Negócio
 
 - O sistema só pode ser utilizado após cadastro prévio
 - **Clientes** autenticam com `ROLE_CLIENTE` e são redirecionados ao Dashboard do cliente
 - **Agentes (Empresas)** autenticam com `ROLE_AGENTE` e são redirecionados ao Painel Administrativo
+- **Bancos** autenticam com `ROLE_BANCO` e são redirecionados ao Painel Bancário
 - Pedidos seguem o ciclo: `PENDENTE → APROVADO/REJEITADO → (contrato gerado)` | `CANCELADO`
 - `valorEstimado` = dias do período × `precoDiaria` do automóvel (calculado pelo servidor)
 - Automóveis podem ser propriedade de **Clientes, Empresas ou Bancos**
@@ -125,7 +126,11 @@ Automovel             Avaliacao
 ├── ano               ├── parecer
 ├── marca             └── justificativa
 ├── modelo
-└── placa
+├── placa
+├── precoDiaria
+├── imagemUrl
+├── getNomeProprietario()
+└── getTipoProprietario()
 ```
 
 ### Enum `StatusPedido`
@@ -190,14 +195,14 @@ aluguel-carros/
 
 Certifique-se de ter instalado:
 
-- **Java 21+** — [Download JDK](https://adoptium.net/)
+- **Java 17+** — [Download JDK](https://adoptium.net/)
 - **Gradle 8+** — incluído via Gradle Wrapper (`./gradlew`)
 - **PostgreSQL 15+** — para ambiente de produção (desenvolvimento usa H2 em memória, sem necessidade de banco externo)
 
 Verifique as versões:
 
 ```bash
-java -version    # deve ser 21+
+java -version    # deve ser 17+
 ./gradlew --version
 ```
 
@@ -264,14 +269,25 @@ jpa:
 ### 4. Execute a aplicação
 
 ```bash
-# Build e execução
-./gradlew run
+# Modo desenvolvimento (H2 em memória, recria schema a cada restart)
+# PowerShell:
+$env:JAVA_HOME = "$env:USERPROFILE\.jdks\jdk-17.0.12"
+$env:MICRONAUT_ENVIRONMENTS = "dev"
+.\gradlew.bat run
 
-# Ou com hot reload
-./gradlew run --continuous
+# Bash:
+MICRONAUT_ENVIRONMENTS=dev ./gradlew run
 ```
 
-A API estará disponível em: **`http://localhost:8080`**
+A aplicação estará disponível em: **`http://localhost:8080`**
+
+### Credenciais de Acesso (Ambiente dev)
+
+| Ator | Login | Senha | Role |
+|------|-------|-------|------|
+| **Empresa (Admin)** | `drivelux@admin.com` | `123456` | `ROLE_AGENTE` |
+| **Banco** | `banco@drivelux.com` | `123456` | `ROLE_BANCO` |
+| **Cliente** | Criar via cadastro na página inicial | Qualquer senha ≥ 6 chars | `ROLE_CLIENTE` |
 
 ### 5. Execute os testes
 
@@ -332,6 +348,8 @@ A API estará disponível em: **`http://localhost:8080`**
 | Método | Endpoint | Acesso | Descrição |
 |--------|----------|--------|-----------|
 | `GET` | `/contratos/{id}` | Autenticado | Detalhar contrato |
+| `GET` | `/contratos/pendentes-credito` | `ROLE_BANCO` | Listar contratos sem crédito associado |
+| `POST` | `/contratos/{id}/credito?valor=&parcelas=&taxaJuros=` | `ROLE_BANCO` | Associar crédito bancário ao contrato |
 
 ---
 
@@ -366,7 +384,7 @@ Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 > **Entregues:**
 
 - [x] Interface Web completa (SPA multi-role: Cliente e Agente)
-- [x] Autenticação JWT com emissão dinâmica de Roles (`ROLE_CLIENTE` / `ROLE_AGENTE`)
+- [x] Autenticação JWT com emissão dinâmica de Roles (`ROLE_CLIENTE` / `ROLE_AGENTE` / `ROLE_BANCO`)
 - [x] Roteamento automático por Role pós-login
 - [x] Dashboard do Cliente: histórico de pedidos com status e valor calculado
 - [x] Dashboard Administrativo: avaliação de pedidos e CRUD de frota de veículos
@@ -374,6 +392,52 @@ Documentação: [`/docs/uml/Sprint01_Modelagem.docx`](docs/uml/)
 - [x] Geração automática de Contrato ao aprovar pedido
 - [x] Diagrama de Implantação ([`/docs/uml/diagrama-implantacao.puml`](docs/uml/diagrama-implantacao.puml))
 - [x] Suíte de testes JUnit 5 + Mockito
+
+---
+
+### Sprint 04 — UI/UX e Catálogo de Frota ✅
+
+> **Entregues (Feedback do Professor):**
+
+- [x] **Fonte Racing Sans One** aplicada em títulos e cabeçalhos (Google Fonts)
+- [x] **Fotos nos carros**: campo `imagemUrl` na entidade `Automovel` + exibição nos cards
+- [x] **Nome do proprietário** exibido nos cards: métodos `@Transient getNomeProprietario()` e `getTipoProprietario()`
+- [x] **Catálogo visual de frota** (aba "Pesquisar Frota" no dashboard do cliente)
+  - Cards com imagens, preços, proprietário
+  - Filtros: busca textual + marca + ano
+  - Botão "Alugar Agora" com pré-seleção do veículo
+- [x] **Formulário de cadastro de veículo** atualizado com campo URL de imagem
+- [x] **DataInitializer** com imagens reais (Unsplash) nos veículos seed
+- [x] Diagramas UML atualizados (Classes, Casos de Uso, Pacotes, Histórias de Usuário)
+
+---
+
+### Sprint 05 — Acesso Bancário (ROLE_BANCO) ✅
+
+> **Entregues:**
+
+- [x] **BancoRepository** criado com `findByLogin()`
+- [x] **Login de Banco** no `AuthService` com `ROLE_BANCO` separada
+- [x] **Seed de Banco** no `DataInitializer` (`banco@drivelux.com` / `123456`)
+- [x] **ContratoController corrigido**: resolve Banco do JWT, aceita `taxaJuros`, `@Secured("ROLE_BANCO")`
+- [x] **Endpoint `GET /contratos/pendentes-credito`** com `@Query` JPQL
+- [x] **Contrato.java** anotado com `@JsonIgnoreProperties` para serialização segura
+- [x] **Frontend `bank-dashboard.html`**: painel bancário com lista de contratos pendentes e modal de crédito
+- [x] **Routing refatorado** (`checkAuthAndRoute`): 3 roles com guards de página
+- [x] Diagramas UML atualizados (Componentes, Pacotes, Casos de Uso, Implantação, Histórias)
+
+### Sprint 05.1 — Fluxo de Crédito Iniciado pelo Cliente ✅
+
+> **Entregues:**
+
+- [x] **Campo `necessitaCredito`** em `Pedido.java` e `Contrato.java` (Boolean, default false)
+- [x] **DTOs atualizados** (`PedidoRequestDTO`, `PedidoResponseDTO`) com o novo campo
+- [x] **PedidoService** propaga flag do DTO para a entidade; campo imutável após criação
+- [x] **ContratoService.gerarContrato()** propaga `necessitaCredito` do Pedido para o Contrato
+- [x] **Query JPQL filtrada**: `findSemCredito()` agora só retorna contratos com `necessitaCredito = true`
+- [x] **Checkbox no frontend** do cliente: "Necessito de financiamento bancário"
+- [x] **Badge "💳 Crédito"** nos cards de pedido (cliente e admin)
+- [x] **Payload limpo**: removidos `status` e `valorEstimado` do JS (ignorados pelo backend)
 
 ---
 
@@ -637,7 +701,7 @@ dataAccess ..> db : <<TCP/IP>> \n (JDBC)
 
 | Tecnologia | Versão | Uso |
 |-----------|--------|-----|
-| **Java** | 21 | Linguagem principal |
+| **Java** | 17+ | Linguagem principal |
 | **Micronaut** | 4.x | Framework web e IoC |
 | **Micronaut Data** | 4.x | ORM / repositórios JPA |
 | **Hibernate** | 6.x | Provider JPA |

@@ -1,9 +1,11 @@
 package br.com.pucminas.aluguelcarros.config;
 
 import br.com.pucminas.aluguelcarros.domain.model.Automovel;
+import br.com.pucminas.aluguelcarros.domain.model.Banco;
 import br.com.pucminas.aluguelcarros.domain.model.Empresa;
 import br.com.pucminas.aluguelcarros.domain.model.Agente;
 import br.com.pucminas.aluguelcarros.repository.AutomovelRepository;
+import br.com.pucminas.aluguelcarros.repository.BancoRepository;
 import br.com.pucminas.aluguelcarros.repository.EmpresaRepository;
 import io.micronaut.context.event.ApplicationEventListener;
 import io.micronaut.context.event.StartupEvent;
@@ -17,10 +19,12 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
 
     private final EmpresaRepository empresaRepository;
     private final AutomovelRepository automovelRepository;
+    private final BancoRepository bancoRepository;
 
-    public DataInitializer(EmpresaRepository empresaRepository, AutomovelRepository automovelRepository) {
+    public DataInitializer(EmpresaRepository empresaRepository, AutomovelRepository automovelRepository, BancoRepository bancoRepository) {
         this.empresaRepository = empresaRepository;
         this.automovelRepository = automovelRepository;
+        this.bancoRepository = bancoRepository;
     }
 
     @Override
@@ -36,16 +40,50 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
             
             empresaRepository.save(mockEmpresa);
 
-            Automovel a1 = new Automovel(null, "MERC-001", "ABC-1234", "Mercedes-Benz", "C-Class", 2023, true, null, null, mockEmpresa, null);
+            Automovel a1 = new Automovel();
+            a1.setMatricula("MERC-001");
+            a1.setPlaca("ABC-1234");
+            a1.setMarca("Mercedes-Benz");
+            a1.setModelo("C-Class");
+            a1.setAno(2023);
+            a1.setDisponivel(true);
             a1.setPrecoDiaria(new BigDecimal("350.00"));
+            a1.setImagemUrl("https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=400&fit=crop");
+            a1.setEmpresaProprietaria(mockEmpresa);
 
-            Automovel a2 = new Automovel(null, "BMW-002", "XYZ-9876", "BMW", "Serie 3", 2024, true, null, null, mockEmpresa, null);
+            Automovel a2 = new Automovel();
+            a2.setMatricula("BMW-002");
+            a2.setPlaca("XYZ-9876");
+            a2.setMarca("BMW");
+            a2.setModelo("Serie 3");
+            a2.setAno(2024);
+            a2.setDisponivel(true);
             a2.setPrecoDiaria(new BigDecimal("420.00"));
+            a2.setImagemUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop");
+            a2.setEmpresaProprietaria(mockEmpresa);
 
-            Automovel a3 = new Automovel(null, "AUDI-003", "QWE-4567", "Audi", "A5 Sportback", 2023, true, null, null, mockEmpresa, null);
+            Automovel a3 = new Automovel();
+            a3.setMatricula("AUDI-003");
+            a3.setPlaca("QWE-4567");
+            a3.setMarca("Audi");
+            a3.setModelo("A5 Sportback");
+            a3.setAno(2023);
+            a3.setDisponivel(true);
             a3.setPrecoDiaria(new BigDecimal("390.00"));
+            a3.setImagemUrl("https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600&h=400&fit=crop");
+            a3.setEmpresaProprietaria(mockEmpresa);
             
             automovelRepository.saveAll(List.of(a1, a2, a3));
+
+            // ── Seed Banco ────────────────────────────────────────────────
+            Banco mockBanco = new Banco();
+            mockBanco.setNome("Banco DriveLux");
+            mockBanco.setLogin("banco@drivelux.com");
+            mockBanco.setSenha("123456");
+            mockBanco.setCnpj("11.111.111/0001-11");
+            mockBanco.setNomeBanco("Banco DriveLux Finance");
+            mockBanco.setCodigoBancario("999");
+            bancoRepository.save(mockBanco);
         }
     }
 }

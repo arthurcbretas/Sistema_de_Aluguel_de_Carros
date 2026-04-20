@@ -64,6 +64,7 @@ public class AutomovelController {
         a.setPlaca(dto.getPlaca());
         a.setDisponivel(true);
         a.setPrecoDiaria(dto.getPrecoDiaria());
+        a.setImagemUrl(dto.getImagemUrl());
         a.setEmpresaProprietaria(empresa);
 
         return HttpResponse.created(automovelRepository.save(a));

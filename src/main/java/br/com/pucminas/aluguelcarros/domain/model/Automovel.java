@@ -48,17 +48,46 @@ public class Automovel {
     @Column(name = "preco_diaria", precision = 10, scale = 2)
     private BigDecimal precoDiaria;
 
+    @Column(name = "imagem_url", length = 500)
+    private String imagemUrl;
+
     // ── Proprietário (três FKs nullable — apenas uma preenchida) ──────────
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_cliente_proprietario")
     private Cliente clienteProprietario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_empresa_proprietaria")
     private Empresa empresaProprietaria;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_banco_proprietario")
     private Banco bancoProprietario;
+
+    // ── Propriedades transientes (incluídas no JSON automaticamente) ──────
+
+    /**
+     * Retorna o nome do proprietário do automóvel.
+     * Como o método começa com "get", o serializador Jackson o inclui
+     * automaticamente na resposta JSON sob a chave "nomeProprietario".
+     */
+    @Transient
+    public String getNomeProprietario() {
+        if (empresaProprietaria != null) return empresaProprietaria.getRazaoSocial();
+        if (bancoProprietario != null) return bancoProprietario.getNomeBanco();
+        if (clienteProprietario != null) return clienteProprietario.getNome();
+        return "Proprietário não informado";
+    }
+
+    /**
+     * Retorna o tipo de proprietário: EMPRESA, BANCO ou CLIENTE.
+     */
+    @Transient
+    public String getTipoProprietario() {
+        if (empresaProprietaria != null) return "EMPRESA";
+        if (bancoProprietario != null) return "BANCO";
+        if (clienteProprietario != null) return "CLIENTE";
+        return "DESCONHECIDO";
+    }
 }

@@ -20,7 +20,14 @@
       </div>
     </header>
 
-    <div class="glass-panel wide">
+    <!-- Abas: Pedidos / Pesquisar Frota -->
+    <div class="tabs" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+      <button id="tabMeusPedidosBtn" class="active" onclick="switchClientTab('pedidos')" style="flex:1;">Meus Pedidos</button>
+      <button id="tabFrotaCatalogoBtn" class="secondary" onclick="switchClientTab('frota')" style="flex:1;">Pesquisar Frota</button>
+    </div>
+
+    <!-- SEÇÃO 1: MEUS PEDIDOS -->
+    <div id="meusPedidosSection" class="glass-panel wide">
       <h3>Meus Pedidos de Locação</h3>
       
       <!-- Placeholder para carregando -->
@@ -35,6 +42,34 @@
       
       <!-- Grid de Pedidos -->
       <div id="pedidosGrid" class="grid hidden">
+        <!-- Renderizado via JS -->
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: CATÁLOGO DE FROTA -->
+    <div id="frotaCatalogoSection" class="glass-panel wide hidden">
+      <h3>Catálogo de Veículos Disponíveis</h3>
+      
+      <!-- Barra de pesquisa e filtros -->
+      <div class="fleet-search-bar">
+        <input type="text" id="searchFrota" placeholder="Buscar por marca, modelo..." oninput="filterFrotaCatalogo()">
+        <select id="filterMarca" onchange="filterFrotaCatalogo()">
+          <option value="">Todas as Marcas</option>
+        </select>
+        <select id="filterAno" onchange="filterFrotaCatalogo()">
+          <option value="">Todos os Anos</option>
+        </select>
+      </div>
+
+      <div id="loadingCatalogo" style="color:var(--text-muted); text-align:center; padding: 2rem;">
+        Carregando veículos...
+      </div>
+      
+      <div id="noCatalogo" class="hidden" style="color:var(--text-muted); text-align:center; padding: 2rem;">
+        Nenhum veículo encontrado com os filtros selecionados.
+      </div>
+
+      <div id="catalogoGrid" class="grid hidden">
         <!-- Renderizado via JS -->
       </div>
     </div>
@@ -62,6 +97,13 @@
           </div>
         </div>
         
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="necessitaCredito" style="width: auto;">
+          <label for="necessitaCredito" style="margin: 0; cursor: pointer;">
+            Necessito de financiamento bancário
+          </label>
+        </div>
+
         <div id="pedidoErrorMsg" class="hidden" style="color:var(--danger); margin-bottom: 1rem; font-size: 0.875rem;"></div>
 
         <div class="d-flex" style="margin-top: 1.5rem;">

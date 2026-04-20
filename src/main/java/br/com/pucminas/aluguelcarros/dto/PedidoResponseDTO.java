@@ -21,4 +21,5 @@ public class PedidoResponseDTO {
     private Long idCliente;
     private Long idAutomovel;
     private Long idContrato;
+    private Boolean necessitaCredito;
 }

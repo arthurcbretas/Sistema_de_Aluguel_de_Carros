@@ -44,6 +44,10 @@ public class Pedido {
     @Column(name = "valor_estimado", precision = 15, scale = 2)
     private BigDecimal valorEstimado;
 
+    /** Flag indicando se o cliente necessita de financiamento bancário. Imutável após criação. */
+    @Column(name = "necessita_credito", nullable = false)
+    private Boolean necessitaCredito = false;
+
     // ── Relacionamentos ───────────────────────────────────────────────────
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

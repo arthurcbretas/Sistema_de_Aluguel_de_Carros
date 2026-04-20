@@ -1,7 +1,9 @@
 package br.com.pucminas.aluguelcarros.service;
 
 import br.com.pucminas.aluguelcarros.domain.model.Cliente;
+import br.com.pucminas.aluguelcarros.domain.model.Banco;
 import br.com.pucminas.aluguelcarros.repository.ClienteRepository;
+import br.com.pucminas.aluguelcarros.repository.BancoRepository;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.security.authentication.AuthenticationProvider;
 import io.micronaut.security.authentication.AuthenticationRequest;
@@ -26,11 +28,14 @@ public class AuthService implements AuthenticationProvider<HttpRequest<?>> {
 
     private final ClienteRepository clienteRepository;
     private final br.com.pucminas.aluguelcarros.repository.EmpresaRepository empresaRepository;
+    private final BancoRepository bancoRepository;
 
     public AuthService(ClienteRepository clienteRepository,
-                       br.com.pucminas.aluguelcarros.repository.EmpresaRepository empresaRepository) {
+                       br.com.pucminas.aluguelcarros.repository.EmpresaRepository empresaRepository,
+                       BancoRepository bancoRepository) {
         this.clienteRepository = clienteRepository;
         this.empresaRepository = empresaRepository;
+        this.bancoRepository = bancoRepository;
     }
 
     @Override
@@ -51,6 +56,12 @@ public class AuthService implements AuthenticationProvider<HttpRequest<?>> {
         // Para a PoC e o Dummy Initializer, estamos em texto puro ou checando equals direto para facilitar
         if (empresaOpt.isPresent() && senha.equals(empresaOpt.get().getSenha())) {
             return Mono.just(AuthenticationResponse.success(login, List.of("ROLE_AGENTE")));
+        }
+
+        // 3. Tenta como Banco
+        Optional<Banco> bancoOpt = bancoRepository.findByLogin(login);
+        if (bancoOpt.isPresent() && senha.equals(bancoOpt.get().getSenha())) {
+            return Mono.just(AuthenticationResponse.success(login, List.of("ROLE_BANCO")));
         }
 
         return Mono.just(AuthenticationResponse.failure("Credenciais inválidas."));

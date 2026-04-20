@@ -25,6 +25,8 @@ rectangle "Sistema de Aluguel de Carros" {
   usecase "UC10\nGerar Contrato"                as UC10
   usecase "UC11\nAssociar Credito"              as UC11
   usecase "UC12\nConsultar Automoveis"          as UC12
+  usecase "UC13\nPesquisar Frota (Catálogo)"   as UC13
+  usecase "UC14\nGerenciar Frota (CRUD)"       as UC14
 }
 
 Cliente --> UC01
@@ -36,9 +38,12 @@ Cliente --> UC06
 Cliente --> UC07
 Cliente --> UC08
 Cliente --> UC12
+Cliente --> UC13
 
 Agente  --> UC09
+Empresa --> UC14
 Banco   --> UC11
+Banco   --> UC02
 Sistema --> UC10
 
 UC03 ..> UC02 : <<include>>
@@ -48,5 +53,7 @@ UC10 ..> UC09 : <<include>>
 
 note right of UC10 : Gerado automaticamente\npos aprovacao
 note right of UC07 : Regra: maximo 3\npor cliente
+note right of UC13 : Filtragem por marca,\nmodelo e ano com\nimagens dos veículos
+note right of UC14 : Cadastro com URL de\nimagem do veículo
 
 @enduml

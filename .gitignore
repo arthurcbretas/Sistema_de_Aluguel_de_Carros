@@ -86,3 +86,12 @@ desktop.ini
 .terminal-history
 .env.*.local
 gradle-8.7/
+
+# ----------------------------------------------------------
+# Documentos internos (não publicar no repositório)
+# ----------------------------------------------------------
+docs/project_context.md
+docs/implementation_plan.md
+docs/relatorio_sprint02.md
+docs/relatorio_sprint03.md
+docs/troubleshooting_log.md

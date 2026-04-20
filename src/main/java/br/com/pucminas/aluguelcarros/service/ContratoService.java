@@ -9,6 +9,7 @@ import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Singleton
 public class ContratoService {
@@ -34,6 +35,8 @@ public class ContratoService {
         contrato.setDataFim(pedido.getDataFimAluguel());
         contrato.setValorFinal(pedido.getValorEstimado());
         contrato.setAssinado(false);
+        contrato.setNecessitaCredito(
+                pedido.getNecessitaCredito() != null ? pedido.getNecessitaCredito() : false);
         return contratoRepository.save(contrato);
     }
 
@@ -43,11 +46,20 @@ public class ContratoService {
     }
 
     /**
+     * Lista contratos aprovados que ainda não possuem crédito bancário.
+     * Usada pela tela do Banco (fila de trabalho).
+     */
+    public List<Contrato> listarSemCredito() {
+        return contratoRepository.findSemCredito();
+    }
+
+    /**
      * Associa crédito bancário a um contrato existente (ação do Agente Banco).
      */
     @Transactional
     public ContratoCredito associarCredito(Long idContrato, Banco banco,
-                                           BigDecimal valor, int parcelas) {
+                                           BigDecimal valor, int parcelas,
+                                           BigDecimal taxaJuros) {
         Contrato contrato = buscarPorId(idContrato);
         if (contrato.getContratoCredito() != null) {
             throw new RegraDeNegocioException("Este contrato já possui crédito associado.");
@@ -57,6 +69,15 @@ public class ContratoService {
         credito.setBanco(banco);
         credito.setValorCredito(valor);
         credito.setParcelas(parcelas);
+        credito.setTaxaJurosMensal(taxaJuros);
         return contratoCreditoRepository.save(credito);
+    }
+
+    /**
+     * Lista créditos já associados por um banco específico (histórico).
+     */
+    @Transactional
+    public List<ContratoCredito> listarCreditosPorBanco(String loginBanco) {
+        return contratoCreditoRepository.findByBancoLogin(loginBanco);
     }
 }

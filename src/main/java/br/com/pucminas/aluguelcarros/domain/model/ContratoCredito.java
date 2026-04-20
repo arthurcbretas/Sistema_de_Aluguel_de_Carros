@@ -1,5 +1,6 @@
 package br.com.pucminas.aluguelcarros.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"contrato", "banco"})
 public class ContratoCredito {
 
     @Id

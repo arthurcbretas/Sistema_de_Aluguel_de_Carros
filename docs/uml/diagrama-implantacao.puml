@@ -4,7 +4,7 @@ skinparam componentStyle uml2
 
 node "Dispositivo do Cliente" <<device>> as clientNode {
   node "Navegador Web" <<browser>> as browser {
-    artifact "SPA Frontend" <<HTML/JS/CSS>> as SPA
+    artifact "SPA Frontend\n(Cliente / Admin / Banco)" <<HTML/JS/CSS>> as SPA
   }
 }
 

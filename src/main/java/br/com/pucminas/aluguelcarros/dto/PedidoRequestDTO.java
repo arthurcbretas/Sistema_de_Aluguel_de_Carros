@@ -24,4 +24,6 @@ public class PedidoRequestDTO {
     private Long idAutomovel;
 
     private BigDecimal valorEstimado;
+
+    private Boolean necessitaCredito;
 }

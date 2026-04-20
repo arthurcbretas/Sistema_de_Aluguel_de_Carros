@@ -47,6 +47,8 @@ public class PedidoService {
         pedido.setDataInicioAluguel(dto.getDataInicioAluguel());
         pedido.setDataFimAluguel(dto.getDataFimAluguel());
         pedido.setStatus(StatusPedido.PENDENTE);
+        pedido.setNecessitaCredito(
+                dto.getNecessitaCredito() != null ? dto.getNecessitaCredito() : false);
 
         // ── Cálculo automático do valor estimado ──────────────────────────
         long dias = ChronoUnit.DAYS.between(dto.getDataInicioAluguel(), dto.getDataFimAluguel());

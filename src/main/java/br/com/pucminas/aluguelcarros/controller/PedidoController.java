@@ -83,6 +83,7 @@ public class PedidoController {
         dto.setIdAutomovel(p.getAutomovel().getIdAutomovel());
         if (p.getContrato() != null)
             dto.setIdContrato(p.getContrato().getIdContrato());
+        dto.setNecessitaCredito(p.getNecessitaCredito());
         return dto;
     }
 }

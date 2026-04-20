@@ -20,4 +20,7 @@ public class AutomovelRequestDTO {
     private Integer ano;
     @NotNull
     private java.math.BigDecimal precoDiaria;
+
+    /** URL da imagem do veículo (opcional) */
+    private String imagemUrl;
 }
