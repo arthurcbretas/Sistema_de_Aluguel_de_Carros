@@ -536,11 +536,12 @@ window.loadFrota = async function() {
             <p class="car-card-meta">Placa: ${c.placa} · Matrícula: ${c.matricula}</p>
             <div class="car-card-price">R$ ${c.precoDiaria ? c.precoDiaria.toFixed(2) : '---'}/dia</div>
           </div>
-          <div class="car-card-actions d-flex" style="gap: 0.5rem;">
-            <button class="secondary" style="font-size: 0.75rem; padding: 0.4rem;" onclick="toggleAutomovel(${c.idAutomovel})">
+          <div class="car-card-actions d-flex" style="gap: 0.5rem; justify-content: space-between;">
+            <button class="secondary" style="font-size: 0.70rem; padding: 0.4rem;" onclick="toggleAutomovel(${c.idAutomovel})">
               ${c.disponivel ? 'Suspender' : 'Ativar'}
             </button>
-            <button class="danger" style="font-size: 0.75rem; padding: 0.4rem;" onclick="deleteAutomovel(${c.idAutomovel})">Excluir</button>
+            <button class="primary" style="font-size: 0.70rem; padding: 0.4rem; background: var(--primary); border: none; color: #fff; cursor: pointer; border-radius: 4px;" onclick="editarPreco(${c.idAutomovel}, ${c.precoDiaria})">Editar R$</button>
+            <button class="danger" style="font-size: 0.70rem; padding: 0.4rem;" onclick="deleteAutomovel(${c.idAutomovel})">Excluir</button>
           </div>
         </div>
       `).join('');
@@ -549,6 +550,33 @@ window.loadFrota = async function() {
     loading.textContent = "Erro ao carregar frota.";
   }
 };
+
+window.editarPreco = async function(id, precoAtual) {
+  const novoPreco = prompt(`Entre o novo valor da diária (Atual: R$ ${precoAtual ? precoAtual.toFixed(2) : '---'}):`);
+  if (!novoPreco) return;
+  const precoNum = parseFloat(novoPreco.replace(',','.'));
+  if (isNaN(precoNum) || precoNum <= 0) {
+    alert("Valor inválido.");
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/automoveis/${id}/preco`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ precoDiaria: precoNum })
+    });
+    if (res.ok) {
+      loadFrota(); // Recarrega os cards
+    } else {
+      alert("Erro ao alterar o preço. Verifique sua conexão ou tente novamente.");
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Erro de comunicação com o servidor.");
+  }
+};
+
 
 window.openNovoCarroModal = function() {
   document.getElementById('novoCarroModal').classList.add('active');

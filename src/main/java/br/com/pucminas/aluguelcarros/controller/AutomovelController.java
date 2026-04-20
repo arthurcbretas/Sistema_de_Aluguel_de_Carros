@@ -70,6 +70,24 @@ public class AutomovelController {
         return HttpResponse.created(automovelRepository.save(a));
     }
 
+    @Put("/{id}/preco")
+    @Secured("ROLE_AGENTE")
+    public HttpResponse<Automovel> atualizarPreco(@PathVariable Long id, @Body java.util.Map<String, java.math.BigDecimal> body, Principal principal) {
+        Empresa empresa = empresaRepository.findByLogin(principal.getName()).orElseThrow();
+        Automovel a = buscar(id);
+        
+        if (a.getEmpresaProprietaria() == null || !a.getEmpresaProprietaria().getIdAgente().equals(empresa.getIdAgente())) {
+             return HttpResponse.unauthorized();
+        }
+        
+        if (body == null || !body.containsKey("precoDiaria") || body.get("precoDiaria") == null) {
+            return HttpResponse.badRequest();
+        }
+        
+        a.setPrecoDiaria(body.get("precoDiaria"));
+        return HttpResponse.ok(automovelRepository.update(a));
+    }
+
     @Put("/{id}/disponibilidade")
     @Secured("ROLE_AGENTE")
     public HttpResponse<Automovel> alternarDisponibilidade(@PathVariable Long id, Principal principal) {
