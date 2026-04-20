@@ -47,7 +47,7 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
             a1.setModelo("C-Class");
             a1.setAno(2023);
             a1.setDisponivel(true);
-            a1.setPrecoDiaria(new BigDecimal("350.00"));
+            a1.setPrecoDiaria(new BigDecimal("1350.00"));
             a1.setImagemUrl("https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=400&fit=crop");
             a1.setEmpresaProprietaria(mockEmpresa);
 
@@ -58,7 +58,7 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
             a2.setModelo("Serie 3");
             a2.setAno(2024);
             a2.setDisponivel(true);
-            a2.setPrecoDiaria(new BigDecimal("420.00"));
+            a2.setPrecoDiaria(new BigDecimal("1420.00"));
             a2.setImagemUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop");
             a2.setEmpresaProprietaria(mockEmpresa);
 
@@ -69,7 +69,7 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
             a3.setModelo("A5 Sportback");
             a3.setAno(2023);
             a3.setDisponivel(true);
-            a3.setPrecoDiaria(new BigDecimal("390.00"));
+            a3.setPrecoDiaria(new BigDecimal("1390.00"));
             a3.setImagemUrl("https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600&h=400&fit=crop");
             a3.setEmpresaProprietaria(mockEmpresa);
             
@@ -84,6 +84,16 @@ public class DataInitializer implements ApplicationEventListener<StartupEvent> {
             mockBanco.setNomeBanco("Banco DriveLux Finance");
             mockBanco.setCodigoBancario("999");
             bancoRepository.save(mockBanco);
+        } else {
+            // Atualiza os preços antigos no banco de dados existente (produção)
+            automovelRepository.findAll().forEach(a -> {
+                if (a.getPrecoDiaria().compareTo(new BigDecimal("1000")) < 0) {
+                    if (a.getModelo().equals("C-Class")) a.setPrecoDiaria(new BigDecimal("1350.00"));
+                    else if (a.getModelo().equals("Serie 3")) a.setPrecoDiaria(new BigDecimal("1420.00"));
+                    else if (a.getModelo().equals("A5 Sportback")) a.setPrecoDiaria(new BigDecimal("1390.00"));
+                    automovelRepository.update(a);
+                }
+            });
         }
     }
 }
